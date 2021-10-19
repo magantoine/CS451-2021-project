@@ -1,7 +1,7 @@
 package cs451;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Optional;
 
 public class ReliableLink implements Link{
 
@@ -23,22 +23,22 @@ public class ReliableLink implements Link{
             // we send the message
             innerLink.rSend(ipDest, portDest, message);
             // we wait for an ACK (no ACK in return)
-            String res = waitForMessage(5000, true);
-            acked = res != null && res.contains("ACK");
+            Optional<Message> res = waitForMessage(5000, true);
+            acked = res.isPresent() && res.get().getType() == MessageType.ACK;
         }
 
         // if we get here means, we sent a message and received an ACK
     }
 
     @Override
-    public String waitForMessage(int timeout, boolean toAck) throws IOException {
+    public Optional<Message> waitForMessage(int timeout, boolean toAck) throws IOException {
         // short time out
         // waits for a message and ACK for it
         return innerLink.waitForMessage(5000, true);
     }
 
     @Override
-    public String waitForMessage() throws IOException {
+    public Optional<Message> waitForMessage() throws IOException {
         // long time out
         return innerLink.waitForMessage(100000, true);
     }

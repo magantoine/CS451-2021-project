@@ -21,4 +21,7 @@ public class Constants {
     public static final int MAX_PACKET_SIZE = 3000;
 
     public static final String PATH = "C:/Users/antom/Documents/LIFE/EPFL/MA/MA1/DA/CS451-2021-project/template_java/log";
+
+    public static final int BASE_PORT = 10010;
 }
+

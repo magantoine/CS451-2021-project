@@ -1,6 +1,7 @@
 package cs451;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class LogLink implements Link {
     private final OutputLog log;
@@ -19,14 +20,15 @@ public class LogLink implements Link {
     }
 
     @Override
-    public String waitForMessage(int timeout, boolean toAck) throws IOException {
-        String rec = this.innerLink.waitForMessage(timeout, toAck);
-        this.log.write(ActionType.RECEIVE + " / content : { " + rec + " } \n");
+    public Optional<Message> waitForMessage(int timeout, boolean toAck) throws IOException {
+        Optional<Message> rec = this.innerLink.waitForMessage(timeout, toAck);
+        Message parsed = rec.orElse(new Message("_", MessageType.TIMEOUT, null));
+        this.log.write(ActionType.RECEIVE + "/type : " + parsed.getType() + " /content : { " + parsed.getPayload() + " } \n");
         return rec;
     }
 
     @Override
-    public String waitForMessage() throws IOException {
+    public Optional<Message> waitForMessage() throws IOException {
         return this.waitForMessage(100000, false);
     }
 

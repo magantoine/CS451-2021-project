@@ -8,20 +8,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Process {
 
     private final int pId;
-    private final List<String> delivered;
     private final Link rlink;
-    private final List<Message> received = new ArrayList();
+    private final List<Message> delivered = new ArrayList();
 
 
 
 
     public Process(int pId, Link rlink){
         this.pId=pId;
-        this.delivered = new ArrayList<String>();
         this.rlink = rlink;
     }
 
@@ -43,22 +42,19 @@ public class Process {
 
     public void runAsReceiver() throws IOException {
         int nbRec = 0;
-        Instant inst1 = null;
+
         while(true){
-            String received = this.rlink.waitForMessage(1000, true);
-            if(received != null){
+            Optional<Message> received = this.rlink.waitForMessage(1000, true);
+            if(received.isPresent()){
                 nbRec++;
+                delivered.add(received.get());
             }
-            if(nbRec == 1){
-                inst1 = Instant.now();
             if(nbRec == 20) {
-                Instant inst2 = Instant.now();
-                System.out.println("Elapsed Time: "+ Duration.between(inst1, inst2).toString());
                 return;
                 }
             }
         }
-    }
+
 
 
     public int getpId() {

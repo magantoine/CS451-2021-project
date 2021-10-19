@@ -1,12 +1,8 @@
 package cs451;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 public class FairLossLink implements Link{
 
@@ -30,7 +26,11 @@ public class FairLossLink implements Link{
 
     public void rSend(String ipDest, int portDest, String message) throws IOException {
         boolean acked = false;
-        byte[] serialized = serializer.serialize(message + ">>>" + this.portNumber);
+        MessageType type = message.contains("ACK") ? MessageType.ACK : MessageType.MSG;
+        message += ">>>" + type.toString();
+        byte[] serialized = serializer.serialize(message);
+
+
 
 
         DatagramPacket packet = new DatagramPacket(serialized, serialized.length, InetAddress.getByName(ipDest), portDest);
@@ -46,7 +46,7 @@ public class FairLossLink implements Link{
         return serializer.deserialize(received);
     }
 
-    public String waitForMessage(int timeout, boolean toAck) throws IOException {
+    public Optional<Message> waitForMessage(int timeout, boolean toAck) throws IOException {
 
         byte[] buffer = new byte[Constants.MAX_PACKET_SIZE];
 
@@ -62,33 +62,35 @@ public class FairLossLink implements Link{
 
         } catch(SocketTimeoutException e) {
 
-            return null;
+            return Optional.empty();
         }
 
         if(packet.getData() == null){
-            return null;
+            return Optional.empty();
         }
         String messageContent = rDeliver(packet.getData()).split(">>>")[0];
-        int senderPort = Integer.parseInt(rDeliver(packet.getData()).split(">>>")[1]);
+        MessageType messageType = MessageType.valueOf(rDeliver(packet.getData()).split(">>>")[1]);
 
 
-        if(toAck && !messageContent.contains("ACK")) {
+        if(toAck && messageType != MessageType.ACK) {
 
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            rSend(packet.getAddress().getHostAddress(), senderPort, "ACK");
+            rSend(packet.getAddress().getHostAddress(), packet.getPort(), "_>>>" + MessageType.ACK.toString());
         }
-        return messageContent;
+
+        // we return build message once we know every component of it
+        return Optional.of(new Message(messageContent, messageType, new Host(packet.getPort() % Constants.BASE_PORT, packet.getAddress().getHostAddress(), packet.getPort())));
     }
 
-    public String waitForMessage() throws IOException {
+    public Optional<Message> waitForMessage() throws IOException {
         return this.waitForMessage(10000, false);
     }
 
-    public String waitForMessage(int timeout) throws IOException {
+    public Optional<Message> waitForMessage(int timeout) throws IOException {
         return this.waitForMessage(timeout, false);
     }
 
