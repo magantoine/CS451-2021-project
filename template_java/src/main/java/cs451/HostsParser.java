@@ -16,6 +16,7 @@ public class HostsParser {
     private String filename;
     private List<Host> hosts = new ArrayList<>();
 
+    /*
     public boolean populate(String key, String filename) {
         if (!key.equals(HOSTS_KEY)) {
             return false;
@@ -56,6 +57,7 @@ public class HostsParser {
         Collections.sort(hosts, new HostsComparator());
         return true;
     }
+    */
 
     private boolean checkIdRange() {
         int num = hosts.size();

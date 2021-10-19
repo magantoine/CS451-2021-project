@@ -32,9 +32,12 @@ public class Parser {
             help();
         }
 
+        /*
         if (!hostsParser.populate(args[Constants.HOSTS_KEY], args[Constants.HOSTS_VALUE])) {
             help();
         }
+        */
+
 
         if (!hostsParser.inRange(idParser.getId())) {
             help();
