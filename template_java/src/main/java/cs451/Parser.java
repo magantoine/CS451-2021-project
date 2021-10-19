@@ -23,20 +23,23 @@ public class Parser {
         outputParser = new OutputParser();
         configParser = new ConfigParser();
 
+        /*
         int argsNum = args.length;
         if (argsNum != Constants.ARG_LIMIT_CONFIG) {
             help();
         }
 
+         */
+
+
         if (!idParser.populate(args[Constants.ID_KEY], args[Constants.ID_VALUE])) {
             help();
         }
 
-        /*
         if (!hostsParser.populate(args[Constants.HOSTS_KEY], args[Constants.HOSTS_VALUE])) {
             help();
         }
-        */
+
 
 
         if (!hostsParser.inRange(idParser.getId())) {
@@ -46,10 +49,14 @@ public class Parser {
         if (!outputParser.populate(args[Constants.OUTPUT_KEY], args[Constants.OUTPUT_VALUE])) {
             help();
         }
-
+        configParser.populate(args[Constants.CONFIG_VALUE]);
+        /*
         if (!configParser.populate(args[Constants.CONFIG_VALUE])) {
             help();
         }
+
+         */
+
     }
 
     private void help() {
@@ -61,7 +68,7 @@ public class Parser {
         return idParser.getId();
     }
 
-    public List<Host> hosts() {
+    public List<ActiveHost> hosts() {
         return hostsParser.getHosts();
     }
 
@@ -73,4 +80,15 @@ public class Parser {
         return configParser.getPath();
     }
 
+    public String message(){
+        return configParser.getPayload();
+    }
+
+    public int numberOfMessage(){
+        return configParser.getNumberOfMessage();
+    }
+
+    public int receiverPid(){
+        return configParser.getReceiverPid();
+    }
 }

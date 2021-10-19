@@ -4,9 +4,9 @@ public class Message {
 
     private final String payload;
     private final MessageType type;
-    private final Host sender;
+    private final ActiveHost sender;
 
-    public Message(String payload, MessageType type, Host sender){
+    public Message(String payload, MessageType type, ActiveHost sender){
         this.payload = payload;
         this.type = type;
         this.sender = sender;

@@ -29,15 +29,21 @@ public class Process {
      * @param m number of messages to send to the receiver
      * @param receiver host that has to receive the message
      */
-    public void runAsSender(int m, Host receiver) throws IOException {
+    public void runAsSender(int m, ActiveHost receiver) throws IOException {
         int toSend = 0;
         while(toSend != m){
             // random payload
             String content = "HEY(" + pId + "):" + toSend;
-
             rlink.rSend(receiver.getIp(), receiver.getPort(), content);
             toSend ++;
+            if(toSend == 1){
+                System.out.println(java.time.LocalDateTime.now());
+            }
         }
+        System.out.println(java.time.LocalDateTime.now());
+        System.out.println("SENT EVERYTHING");
+
+
     }
 
     public void runAsReceiver() throws IOException {
@@ -48,8 +54,15 @@ public class Process {
             if(received.isPresent()){
                 nbRec++;
                 delivered.add(received.get());
+
+                if(received.get().getType() == MessageType.SIGINT || received.get().getType() == MessageType.SIGTERM){
+                    // we receive the order to kill the node
+                    return;
+                }
             }
-            if(nbRec == 20) {
+
+            if(nbRec == 10000) {
+                System.out.println("RECEIVED EVERYTHING");
                 return;
                 }
             }

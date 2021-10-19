@@ -12,11 +12,12 @@ public class HostsParser {
 
     private static final String HOSTS_KEY = "--hosts";
     private static final String SPACES_REGEX = "\\s+";
+    private static final String SEP = "/";
 
     private String filename;
-    private List<Host> hosts = new ArrayList<>();
+    private List<ActiveHost> hosts = new ArrayList<>();
 
-    /*
+
     public boolean populate(String key, String filename) {
         if (!key.equals(HOSTS_KEY)) {
             return false;
@@ -30,16 +31,19 @@ public class HostsParser {
                     continue;
                 }
 
-                String[] splits = line.split(SPACES_REGEX);
+                String[] splits = line.split(SEP);
                 if (splits.length != 3) {
                     System.err.println("Problem with the line " + lineNum + " in the hosts file!");
                     return false;
                 }
 
-                Host newHost = new Host();
+                //Host newHost = new Host();
+                ActiveHost newHost = new ActiveHost(Integer.parseInt(splits[0]), splits[1], Integer.parseInt(splits[2]));
+                /*
                 if (!newHost.populate(splits[0], splits[1], splits[2])) {
                     return false;
                 }
+                 */
 
                 hosts.add(newHost);
             }
@@ -54,14 +58,14 @@ public class HostsParser {
         }
 
         // sort by id
-        Collections.sort(hosts, new HostsComparator());
+        //Collections.sort(hosts, new HostsComparator());
         return true;
     }
-    */
+
 
     private boolean checkIdRange() {
         int num = hosts.size();
-        for (Host host : hosts) {
+        for (ActiveHost host : hosts) {
             if (host.getId() < 1 || host.getId() > num) {
                 System.err.println("Id of a host is not in the right range!");
                 return false;
@@ -75,7 +79,7 @@ public class HostsParser {
         return id <= hosts.size();
     }
 
-    public List<Host> getHosts() {
+    public List<ActiveHost> getHosts() {
         return hosts;
     }
 

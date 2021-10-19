@@ -30,61 +30,73 @@ public class Main {
         });
     }
 
-    /**
     public static void main(String[] args) throws InterruptedException, IOException {
-
          Parser parser = new Parser(args);
          parser.parse();
 
-         initSignalHandlers();
+         //initSignalHandlers();
 
-         // example
-         long pid = ProcessHandle.current().pid();
-         System.out.println("My PID: " + pid + "\n");
-         System.out.println("From a new terminal type `kill -SIGINT " + pid + "` or `kill -SIGTERM " + pid + "` to stop processing packets\n");
 
-         System.out.println("My ID: " + parser.myId() + "\n");
-         System.out.println("List of resolved hosts is:");
-         System.out.println("==========================");
-         for (Host host: parser.hosts()) {
-         System.out.println(host.getId());
-         System.out.println("Human-readable IP: " + host.getIp());
-         System.out.println("Human-readable Port: " + host.getPort());
-         System.out.println();
+         /*
+         Here the parser parsed everything in the command line :
+
+         - own process id can be retrieved with : parser.myId()
+         - remote hosts can be retrieved with : parser.hosts()
+         - for each Hosts you can have host.getId(), host.getPort(), (all IP are the same)
+         - path to output file (to log) : parser.output()
+         - path to config : parser.config()
+          */
+
+         System.out.println("My Id : " + parser.myId());
+         System.out.println("All hosts : " + parser.hosts());
+         System.out.println("Output file : " + parser.output());
+         System.out.println("Number of messages : " + parser.numberOfMessage());
+         System.out.println("reciever pid : " + parser.receiverPid());
+
+
+
+         System.out.println("> INPUT PARSED");
+
+
+         ActiveHost me = null;
+         ActiveHost receiver = null;
+         System.out.println(parser.hosts());
+         for(ActiveHost host : parser.hosts()) {
+             if (host.getId() == parser.myId()) {
+                 me = host;
+             }
+             if (host.getId() == parser.receiverPid()){
+                 receiver = host;
+             }
          }
-         System.out.println();
 
-         System.out.println("Path to output:");
-         System.out.println("===============");
-         System.out.println(parser.output() + "\n");
 
-         System.out.println("Path to config:");
-         System.out.println("===============");
-         System.out.println(parser.config() + "\n");
+        if(parser.myId() == parser.receiverPid()){
+            System.out.println("> Receiver process launched for Host : " + me.toString());
+            runReceiver(me);
+        } else {
+            System.out.println("> Sender process launched for Host : " + me.toString());
+            runSender(me, receiver, parser.numberOfMessage());
+        }
 
-         System.out.println("Doing some initialization\n");
 
-         System.out.println("Broadcasting and delivering messages...\n");
 
-         // After a process finishes broadcasting,
-         // it waits forever for the delivery of messages.
-         while (true) {
-         // Sleep for 1 hour
-         Thread.sleep(60 * 60 * 1000);
-         }
 
-    }
 
-    **/
 
-    private static void runSender(Host selfHost, Host receiver, int m) throws IOException, InterruptedException {
+}
+
+
+
+
+    private static void runSender(ActiveHost selfHost, ActiveHost receiver, int m) throws IOException, InterruptedException {
 
 
 
         FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerialier());
         // we don't need the log for the senders
         LogLink logLink = new LogLink(flLink);
-        ReliableLink rLink = new ReliableLink(logLink);
+        ReliableLink rLink = new ReliableLink(flLink);
 
         // sender host created
         Process p = new Process(selfHost.getId(), rLink);
@@ -97,12 +109,12 @@ public class Main {
     }
 
 
-    private static void runReceiver(Host selfHost) throws IOException {
+    private static void runReceiver(ActiveHost selfHost) throws IOException {
 
         // create the link
         FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerialier());
         LogLink logLink = new LogLink(flLink);
-        ReliableLink rLink = new ReliableLink(logLink);
+        ReliableLink rLink = new ReliableLink(flLink);
 
         // create the process
         Process p = new Process(selfHost.getId(), rLink);
@@ -115,49 +127,7 @@ public class Main {
 
     }
 
-    public static void main(String[] args) throws InterruptedException, UnknownHostException {
-        int basePort = 10010;
-        int m = 10;
-
-        // this is the host that will be receiving
-        Host receiver = new Host(10, InetAddress.getLocalHost().getHostAddress(), basePort++);
-        System.out.println("RECEIVER HOST CREATED");
-        // we launch the receiver process
-        Thread recProcess = new Thread(() -> {
-            try {
-                runReceiver(receiver);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        recProcess.start();
-
-        System.out.println("RECEIVER THREAD STARTED");
-
-
-        List<Host> senderHosts = new ArrayList<>();
-        List<Thread> processes = new ArrayList<>();
-        for(int i = 0; i < 3; i++){
-            Host h = new Host(i, InetAddress.getLocalHost().getHostAddress(), basePort++);
-            System.out.println("SENDER HOST " + i + " CREATED");
-            processes.add(new Thread(() -> {
-                try {
-                    runSender(h, receiver, m);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }));
-            System.out.println("SENDER PROCESS " + i + " CREATED");
-        }
-
-        processes.forEach(t -> t.setDaemon(true));
-        processes.forEach(Thread::start);
-    }
-
-
+    
 }
 
 

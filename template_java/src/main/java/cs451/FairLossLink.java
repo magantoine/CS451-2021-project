@@ -83,7 +83,7 @@ public class FairLossLink implements Link{
         }
 
         // we return build message once we know every component of it
-        return Optional.of(new Message(messageContent, messageType, new Host(packet.getPort() % Constants.BASE_PORT, packet.getAddress().getHostAddress(), packet.getPort())));
+        return Optional.of(new Message(messageContent, messageType, new ActiveHost(packet.getPort() % Constants.BASE_PORT, packet.getAddress().getHostAddress(), packet.getPort())));
     }
 
     public Optional<Message> waitForMessage() throws IOException {
