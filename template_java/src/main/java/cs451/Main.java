@@ -109,7 +109,7 @@ public class Main {
     }
 
 
-    private static void runReceiver(ActiveHost selfHost) throws IOException {
+    private static void runReceiver(ActiveHost selfHost, List<ActiveHost> allHost) throws IOException {
 
         // create the link
         FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerialier());
@@ -117,7 +117,7 @@ public class Main {
         ReliableLink rLink = new ReliableLink(flLink);
 
         // create the process
-        Process p = new Process(selfHost.getId(), rLink);
+        Process p = new Process(selfHost.getId(), rLink, allHost);
 
         // run the receiver behavior
         p.runAsReceiver();

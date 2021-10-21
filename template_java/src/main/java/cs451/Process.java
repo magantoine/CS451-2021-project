@@ -15,13 +15,18 @@ public class Process {
     private final int pId;
     private final Link rlink;
     private final List<Message> delivered = new ArrayList();
+    private final List<ActiveHost> doneHosts = new ArrayList<>();
+    private final List<ActiveHost> allHosts;
+    private final List<Triple<ActiveHost, ActionType, Message>> activity = new ArrayList<>();
 
 
 
 
-    public Process(int pId, Link rlink){
+
+    public Process(int pId, Link rlink, List<ActiveHost> allHosts){
         this.pId=pId;
         this.rlink = rlink;
+        this.allHosts = allHosts;
     }
 
     /**
@@ -40,6 +45,10 @@ public class Process {
                 System.out.println(java.time.LocalDateTime.now());
             }
         }
+
+        // we tell the receiver we're done
+        rlink.rSend(receiver.getIp(), receiver.getPort(), "SIGDONE");
+
         System.out.println(java.time.LocalDateTime.now());
         System.out.println("SENT EVERYTHING");
 
@@ -47,26 +56,28 @@ public class Process {
     }
 
     public void runAsReceiver() throws IOException {
-        int nbRec = 0;
-
-        while(true){
+        while (true) {
             Optional<Message> received = this.rlink.waitForMessage(1000, true);
-            if(received.isPresent()){
-                nbRec++;
+            if (received.isPresent()) {
                 delivered.add(received.get());
 
-                if(received.get().getType() == MessageType.SIGINT || received.get().getType() == MessageType.SIGTERM){
+                if (received.get().getType() == MessageType.SIGDONE && (!doneHosts.contains(received.get().getSender()))) {
+                    // one of the sender is done
+                    doneHosts.add(received.get().getSender());
+
+                    //check if we're totally done
+                    if(doneHosts.size() == allHosts.size()){
+                        return;
+                    }
+
+                }
+                if (received.get().getType() == MessageType.SIGINT || received.get().getType() == MessageType.SIGTERM) {
                     // we receive the order to kill the node
                     return;
                 }
             }
-
-            if(nbRec == 10000) {
-                System.out.println("RECEIVED EVERYTHING");
-                return;
-                }
-            }
         }
+    }
 
 
 

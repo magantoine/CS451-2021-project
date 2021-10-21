@@ -19,4 +19,6 @@ public class Message {
     public String getPayload() {
         return payload;
     }
+
+    public ActiveHost getSender(){ return sender; }
 }
