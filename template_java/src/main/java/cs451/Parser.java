@@ -91,4 +91,6 @@ public class Parser {
     public int receiverPid(){
         return configParser.getReceiverPid();
     }
+    
+    public String payload() {return configParser.getPayload();}
 }

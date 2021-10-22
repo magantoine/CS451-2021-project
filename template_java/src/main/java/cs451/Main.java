@@ -52,6 +52,7 @@ public class Main {
          System.out.println("Output file : " + parser.output());
          System.out.println("Number of messages : " + parser.numberOfMessage());
          System.out.println("reciever pid : " + parser.receiverPid());
+         System.out.println("payload : " + parser.payload());
 
 
 
@@ -73,11 +74,15 @@ public class Main {
 
         if(parser.myId() == parser.receiverPid()){
             System.out.println("> Receiver process launched for Host : " + me.toString());
-            runReceiver(me);
+            runReceiver(me, parser.hosts(), parser.output());
         } else {
             System.out.println("> Sender process launched for Host : " + me.toString());
-            runSender(me, receiver, parser.numberOfMessage());
+            runSender(me, receiver, parser.numberOfMessage(), parser.output(), parser.hosts(), parser.payload());
         }
+
+
+
+
 
 
 
@@ -89,7 +94,7 @@ public class Main {
 
 
 
-    private static void runSender(ActiveHost selfHost, ActiveHost receiver, int m) throws IOException, InterruptedException {
+    private static void runSender(ActiveHost selfHost, ActiveHost receiver, int m, String outputPath, List<ActiveHost> allHosts, String payload) throws IOException, InterruptedException {
 
 
 
@@ -99,17 +104,17 @@ public class Main {
         ReliableLink rLink = new ReliableLink(flLink);
 
         // sender host created
-        Process p = new Process(selfHost.getId(), rLink);
+        Process p = new Process(selfHost.getId(), rLink, allHosts);
 
         // launch the sender behavior
-        p.runAsSender(m, receiver);
+        p.runAsSender(m, receiver, outputPath, payload);
 
         // closes the link
-        rLink.close();
+        p.close();
     }
 
 
-    private static void runReceiver(ActiveHost selfHost, List<ActiveHost> allHost) throws IOException {
+    private static void runReceiver(ActiveHost selfHost, List<ActiveHost> allHost, String outputPath) throws IOException {
 
         // create the link
         FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerialier());
@@ -120,9 +125,9 @@ public class Main {
         Process p = new Process(selfHost.getId(), rLink, allHost);
 
         // run the receiver behavior
-        p.runAsReceiver();
+        p.runAsReceiver(outputPath);
         // closes the link
-        rLink.close();
+        p.close();
 
 
     }

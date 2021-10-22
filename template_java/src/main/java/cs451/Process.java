@@ -1,5 +1,7 @@
 package cs451;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.time.Duration;
@@ -17,7 +19,7 @@ public class Process {
     private final List<Message> delivered = new ArrayList();
     private final List<ActiveHost> doneHosts = new ArrayList<>();
     private final List<ActiveHost> allHosts;
-    private final List<Triple<ActiveHost, ActionType, Message>> activity = new ArrayList<>();
+    private final List<String> activity = new ArrayList<>();
 
 
 
@@ -34,39 +36,54 @@ public class Process {
      * @param m number of messages to send to the receiver
      * @param receiver host that has to receive the message
      */
-    public void runAsSender(int m, ActiveHost receiver) throws IOException {
+    public void runAsSender(int m, ActiveHost receiver, String outputPath, String payload) throws IOException {
         int toSend = 0;
         while(toSend != m){
             // random payload
-            String content = "HEY(" + pId + "):" + toSend;
+            String content = payload + toSend;
             rlink.rSend(receiver.getIp(), receiver.getPort(), content);
+            activity.add("b " + content + "\n");
             toSend ++;
             if(toSend == 1){
-                System.out.println(java.time.LocalDateTime.now());
+
             }
         }
 
         // we tell the receiver we're done
-        rlink.rSend(receiver.getIp(), receiver.getPort(), "SIGDONE");
+        rlink.rSend(receiver.getIp(), receiver.getPort(), ">>>SIGDONE");
 
-        System.out.println(java.time.LocalDateTime.now());
+        flushActivity(outputPath);
         System.out.println("SENT EVERYTHING");
 
 
     }
 
-    public void runAsReceiver() throws IOException {
+    public void runAsReceiver(String outputPath) throws IOException {
+        int receivedOne = 0;
         while (true) {
             Optional<Message> received = this.rlink.waitForMessage(1000, true);
             if (received.isPresent()) {
                 delivered.add(received.get());
+                receivedOne++;
+                if(receivedOne == 1){
+                    System.out.println("start : " + java.time.LocalDateTime.now());
+                }
+
+                if(received.get().getType() == MessageType.MSG) {
+                    activity.add("d " + received.get().getPayload() + " " + received.get().getSender().getId() + "\n");
+                }
+
 
                 if (received.get().getType() == MessageType.SIGDONE && (!doneHosts.contains(received.get().getSender()))) {
                     // one of the sender is done
                     doneHosts.add(received.get().getSender());
 
                     //check if we're totally done
-                    if(doneHosts.size() == allHosts.size()){
+
+
+                    if(doneHosts.size() == (allHosts.size() - 1)){
+                        System.out.println("Done : " + java.time.LocalDateTime.now());
+                        flushActivity(outputPath);
                         return;
                     }
 
@@ -83,6 +100,26 @@ public class Process {
 
     public int getpId() {
         return pId;
+    }
+
+
+    private void flushActivity(String path){
+        try {
+            FileWriter output = new FileWriter(path);
+            for(String act : this.activity){
+                output.write(act);
+            }
+            output.flush();
+            output.close();
+
+
+        } catch (IOException e) {
+            System.out.println("Couldn't write out activity");
+        }
+    }
+
+    public void close(){
+        rlink.close();
     }
 
 
