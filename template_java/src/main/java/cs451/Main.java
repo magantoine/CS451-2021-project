@@ -100,7 +100,7 @@ public class Main {
 
         FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerialier());
         // we don't need the log for the senders
-        LogLink logLink = new LogLink(flLink);
+        //LogLink logLink = new LogLink(flLink);
         ReliableLink rLink = new ReliableLink(flLink);
 
         // sender host created
@@ -118,7 +118,7 @@ public class Main {
 
         // create the link
         FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerialier());
-        LogLink logLink = new LogLink(flLink);
+        //LogLink logLink = new LogLink(flLink);
         ReliableLink rLink = new ReliableLink(flLink);
 
         // create the process

@@ -18,7 +18,7 @@ public class Constants {
     // indexes for config
     public static final int CONFIG_VALUE = 6;
 
-    public static final int MAX_PACKET_SIZE = 3000;
+    public static final int MAX_PACKET_SIZE = 256;
 
     public static final String PATH = "C:/Users/antom/Documents/LIFE/EPFL/MA/MA1/DA/CS451-2021-project/template_java/log";
 

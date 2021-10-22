@@ -2,6 +2,7 @@ package cs451;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class FairLossLink implements Link{
@@ -10,6 +11,8 @@ public class FairLossLink implements Link{
     private final Serializer serializer;
     private int portNumber;
     private final DatagramSocket socket;
+    private byte [] sendPacket = new byte[Constants.MAX_PACKET_SIZE];
+    private final byte [] receivePacket = new byte[Constants.MAX_PACKET_SIZE];
 
 
 
@@ -25,16 +28,14 @@ public class FairLossLink implements Link{
 
 
     public void rSend(String ipDest, int portDest, String message) throws IOException {
-        boolean acked = false;
         MessageType type = message.contains("ACK") ? MessageType.ACK : MessageType.MSG;
         message += ">>>" + type.toString();
-        byte[] serialized = serializer.serialize(message);
-
-
-
-
-        DatagramPacket packet = new DatagramPacket(serialized, serialized.length, InetAddress.getByName(ipDest), portDest);
+        sendPacket = serializer.serialize(message);
+        DatagramPacket packet = new DatagramPacket(sendPacket, sendPacket.length, InetAddress.getByName(ipDest), portDest);
         socket.send(packet);
+
+        // we empty the sendPacket once again
+        Arrays.fill(sendPacket, (byte)0);
     }
 
 
@@ -47,17 +48,11 @@ public class FairLossLink implements Link{
     }
 
     public Optional<Message> waitForMessage(int timeout, boolean toAck) throws IOException {
-
-        byte[] buffer = new byte[Constants.MAX_PACKET_SIZE];
-
-
         socket.setSoTimeout(timeout);
         DatagramPacket packet = null;
 
-
-
         try{
-            packet = new DatagramPacket(buffer, buffer.length);
+            packet = new DatagramPacket(receivePacket, receivePacket.length);
             socket.receive(packet);
 
         } catch(SocketTimeoutException e) {
@@ -73,15 +68,11 @@ public class FairLossLink implements Link{
 
 
         if(toAck && messageType != MessageType.ACK) {
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             rSend(packet.getAddress().getHostAddress(), packet.getPort(), "_>>>" + MessageType.ACK.toString());
         }
 
+        // we empty the receivePacket
+        Arrays.fill(receivePacket, (byte)0);
         // we return build message once we know every component of it
         return Optional.of(new Message(messageContent, messageType, new ActiveHost(packet.getPort() % Constants.BASE_PORT, packet.getAddress().getHostAddress(), packet.getPort())));
     }

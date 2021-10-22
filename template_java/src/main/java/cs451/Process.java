@@ -19,7 +19,7 @@ public class Process {
     private final List<Message> delivered = new ArrayList();
     private final List<ActiveHost> doneHosts = new ArrayList<>();
     private final List<ActiveHost> allHosts;
-    private final List<String> activity = new ArrayList<>();
+    private final StringBuilder activity = new StringBuilder();
 
 
 
@@ -42,7 +42,7 @@ public class Process {
             // random payload
             String content = payload + toSend;
             rlink.rSend(receiver.getIp(), receiver.getPort(), content);
-            activity.add("b " + content + "\n");
+            activity.append("b " + content + "\n");
             toSend ++;
             if(toSend == 1){
 
@@ -70,7 +70,7 @@ public class Process {
                 }
 
                 if(received.get().getType() == MessageType.MSG) {
-                    activity.add("d " + received.get().getPayload() + " " + received.get().getSender().getId() + "\n");
+                    activity.append("d " + received.get().getPayload() + " " + received.get().getSender().getId() + "\n");
                 }
 
 
@@ -106,9 +106,7 @@ public class Process {
     private void flushActivity(String path){
         try {
             FileWriter output = new FileWriter(path);
-            for(String act : this.activity){
-                output.write(act);
-            }
+            output.write(activity.toString());
             output.flush();
             output.close();
 
