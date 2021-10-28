@@ -1,10 +1,5 @@
-package cs451.Links;
+package cs451;
 
-
-import cs451.ActionType;
-import cs451.Constants;
-import cs451.net.Message;
-import cs451.MessageType;
 
 import java.io.IOException;
 import java.util.Optional;

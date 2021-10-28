@@ -1,10 +1,6 @@
-package cs451.Links;
+package cs451;
 
-import cs451.Constants;
-import cs451.MessageType;
-import cs451.Serialization.Serializer;
-import cs451.net.ActiveHost;
-import cs451.net.Message;
+import cs451.Serializer;
 
 import java.io.IOException;
 import java.net.*;

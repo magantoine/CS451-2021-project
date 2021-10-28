@@ -1,6 +1,7 @@
-package cs451.Links;
+package cs451;
 
-import cs451.net.Message;
+import cs451.Link;
+import cs451.Message;
 import cs451.MessageType;
 
 import java.io.IOException;

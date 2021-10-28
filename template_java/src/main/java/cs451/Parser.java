@@ -1,7 +1,5 @@
-package cs451.Parsers;
+package cs451;
 
-import cs451.net.ActiveHost;
-import cs451.Constants.Constants;
 
 import java.util.List;
 

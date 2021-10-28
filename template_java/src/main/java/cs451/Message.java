@@ -1,5 +1,6 @@
-package cs451.net;
+package cs451;
 
+import cs451.ActiveHost;
 import cs451.MessageType;
 
 public class Message {

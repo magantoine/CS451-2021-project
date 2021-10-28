@@ -1,4 +1,4 @@
-package cs451.Constants;
+package cs451;
 
 public enum ActionType {
     RECEIVE, SEND;

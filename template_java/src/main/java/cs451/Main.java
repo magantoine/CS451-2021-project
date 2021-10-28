@@ -1,17 +1,12 @@
 package cs451;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Array;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
+
+    private static Process currentProcess = null;
+    private static String outPath = null;
 
     private static void handleSignal() {
         //immediately stop network packet processing
@@ -19,12 +14,19 @@ public class Main {
 
         //write/flush output file if necessary
         System.out.println("Writing output.");
+
+        // flushes the activity of the process when interrupted
+        System.out.println("Dealing with interruption of process : " + currentProcess.getpId());
+        currentProcess.flushActivity(outPath);
+        currentProcess.close();
+
     }
 
     private static void initSignalHandlers() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
+
                 handleSignal();
             }
         });
@@ -34,7 +36,7 @@ public class Main {
          Parser parser = new Parser(args);
          parser.parse();
 
-         //initSignalHandlers();
+
 
 
          /*
@@ -47,21 +49,14 @@ public class Main {
          - path to config : parser.config()
           */
 
-         System.out.println("My Id : " + parser.myId());
-         System.out.println("All hosts : " + parser.hosts());
-         System.out.println("Output file : " + parser.output());
-         System.out.println("Number of messages : " + parser.numberOfMessage());
-         System.out.println("reciever pid : " + parser.receiverPid());
-         System.out.println("payload : " + parser.payload());
 
-
-
+        outPath = parser.output();
          System.out.println("> INPUT PARSED");
 
 
          ActiveHost me = null;
          ActiveHost receiver = null;
-         System.out.println(parser.hosts());
+
          for(ActiveHost host : parser.hosts()) {
              if (host.getId() == parser.myId()) {
                  me = host;
@@ -82,7 +77,7 @@ public class Main {
 
 
 
-
+        initSignalHandlers();
 
 
 
@@ -98,13 +93,15 @@ public class Main {
 
 
 
-        FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerialier());
+        FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerializer());
         // we don't need the log for the senders
         //LogLink logLink = new LogLink(flLink);
         ReliableLink rLink = new ReliableLink(flLink);
 
         // sender host created
-        Process p = new Process(selfHost.getId(), rLink, allHosts);
+        Process p = new Process(selfHost.getId(), rLink, allHosts, outputPath);
+
+        currentProcess = p;
 
         // launch the sender behavior
         p.runAsSender(m, receiver, outputPath, payload);
@@ -117,13 +114,16 @@ public class Main {
     private static void runReceiver(ActiveHost selfHost, List<ActiveHost> allHost, String outputPath) throws IOException {
 
         // create the link
-        FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerialier());
+        FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerializer());
         //LogLink logLink = new LogLink(flLink);
         ReliableLink rLink = new ReliableLink(flLink);
 
         // create the process
-        Process p = new Process(selfHost.getId(), rLink, allHost);
-
+        Process p = new Process(selfHost.getId(), rLink, allHost, outputPath);
+        System.out.println("========================================================================================");
+        System.out.println("Running as receiver with Pid : " + p.getpId() + " (out : " + outputPath + ")");
+        System.out.println("========================================================================================");
+        currentProcess = p;
         // run the receiver behavior
         p.runAsReceiver(outputPath);
         // closes the link

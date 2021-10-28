@@ -1,4 +1,4 @@
-package cs451.Constants;
+package cs451;
 
 public class Constants {
     public static final int ARG_LIMIT_CONFIG = 7;

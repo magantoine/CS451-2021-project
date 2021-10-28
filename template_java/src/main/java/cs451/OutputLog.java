@@ -1,4 +1,4 @@
-package cs451.Links;
+package cs451;
 
 import java.io.File;
 import java.io.FileWriter;

@@ -1,4 +1,4 @@
-package cs451.Parsers;
+package cs451;
 
 import java.io.IOException;
 import java.io.InputStream;

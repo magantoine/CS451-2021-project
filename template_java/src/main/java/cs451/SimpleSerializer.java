@@ -1,6 +1,6 @@
-package cs451.Serialization;
+package cs451;
 
-import cs451.Serialization.Serializer;
+import cs451.Serializer;
 
 import java.nio.charset.StandardCharsets;
 

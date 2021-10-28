@@ -1,4 +1,4 @@
-package cs451.Parsers;
+package cs451;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

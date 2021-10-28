@@ -1,7 +1,4 @@
-package cs451.net;
-
-import cs451.MessageType;
-import cs451.Links.Link;
+package cs451;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -109,9 +106,13 @@ public class Process {
 
 
 
+
     public int getpId() {
         return pId;
     }
+
+
+
 
 
     public void flushActivity(String path){

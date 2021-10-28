@@ -1,4 +1,4 @@
-package cs451.net;
+package cs451;
 
 public class ActiveHost {
 

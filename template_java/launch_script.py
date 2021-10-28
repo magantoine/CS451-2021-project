@@ -34,7 +34,7 @@ PATH = os.path.join(os.getcwd(), "settings")
 ## 1 - get the number of sender process you want
 process_nb = int(sys.argv[1]) if (len(sys.argv) > 1) else 1
 base_pid = 1
-base_port = 10010
+base_port = 11000
 
 
 ## creation of the path to output
@@ -55,20 +55,20 @@ if(not os.path.exists(os.path.join(PATH, "out"))):
     os.makedirs(os.path.join(PATH, "out"))
 
 with open("./settings/config.txt", 'w') as config:
-    config.write(str(m)) ## we write the number of messages to send/ sender process
-    config.write(", ")
-    config.write(str(base_pid)) ## we write which process is suppose to send
-    config.write(", ")
-    rpayload = get_random_string(10)
-    print("CHOSEN RANDOM PAYLOAD : " + rpayload)
-    config.write(rpayload) ## we write a random payload
+    config.write(str(m)) ## we write which process is suppose to send
+    config.write(" ")
+    config.write(str(base_pid)) ## we write the number of messages to send/ sender process
+    #config.write(" ")
+    #rpayload = get_random_string(10)
+    #print("CHOSEN RANDOM PAYLOAD : " + rpayload)
+    #config.write(rpayload) ## we write a random payload
 
 print("> CONFIG FILE CREATED")
 ## HOSTS FILE
 with open("./settings/hosts.txt", 'w') as hosts:
-    hosts.write(f"1/localhost/{base_port}\n")
+    hosts.write(f"1 localhost {base_port}\n")
     for i in range(1, process_nb + 1):
-        hosts.write(f"{i + 1}/localhost/{base_port + i}\n")
+        hosts.write(f"{i + 1} localhost {base_port + i}\n")
         
 print("> HOST FILE CREATED")
 
@@ -92,6 +92,16 @@ for i in range(1, process_nb + 1):
     print(build_command_line(cur_pid))
     processes.append(subprocess.Popen(build_command_line(cur_pid), shell=True))
     print("> sender process launched")
+
+
+time.sleep(4) # sleeps for 4 seconds
+
+
+## killing process
+for p in processes :
+    
+    p.terminate()
+    print("Process killed !")
 
 
 
