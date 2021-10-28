@@ -1,4 +1,4 @@
-package cs451;
+package cs451.Parsers;
 
 import java.io.*;
 import java.util.Scanner;
@@ -21,7 +21,7 @@ public class ConfigParser {
 
             content = in.nextLine();
 
-            args = content.split(", ");
+            args = content.split(" ");
 
         } catch (FileNotFoundException e){
             return true;
@@ -33,7 +33,7 @@ public class ConfigParser {
 
         receiverPid = Integer.parseInt(args[1]);
 
-        payload = args[2];
+        payload = "";
 
         return false;
     }

@@ -1,9 +1,10 @@
-package cs451;
+package cs451.Serialization;
+
+import cs451.Serialization.Serializer;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
-class SimpleSerialier implements Serializer {
+public class SimpleSerializer implements Serializer {
 
     public byte[] serialize(String message){
         return message.getBytes();

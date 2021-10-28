@@ -1,15 +1,12 @@
-package cs451;
+package cs451.net;
 
-import java.io.File;
+import cs451.MessageType;
+import cs451.Links.Link;
+
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class Process {
@@ -20,15 +17,16 @@ public class Process {
     private final List<ActiveHost> doneHosts = new ArrayList<>();
     private final List<ActiveHost> allHosts;
     private final StringBuilder activity = new StringBuilder();
+    private final String outpath;
 
 
 
 
-
-    public Process(int pId, Link rlink, List<ActiveHost> allHosts){
+    public Process(int pId, Link rlink, List<ActiveHost> allHosts, String outPath){
         this.pId=pId;
         this.rlink = rlink;
         this.allHosts = allHosts;
+        this.outpath = outPath;
     }
 
     /**
@@ -52,8 +50,12 @@ public class Process {
         // we tell the receiver we're done
         rlink.rSend(receiver.getIp(), receiver.getPort(), ">>>SIGDONE");
 
-        flushActivity(outputPath);
+        /* no need to flush here, the activity of the process is
+           handled, process and write out in the handleSignal function in Main
+         */
+        //flushActivity(outputPath);
         System.out.println("SENT EVERYTHING");
+
 
 
     }
@@ -79,22 +81,31 @@ public class Process {
                     doneHosts.add(received.get().getSender());
 
                     //check if we're totally done
+                    //return;
+                }
 
+                if(doneHosts.size() == (allHosts.size() - 1)){
+                    System.out.println("Done : " + java.time.LocalDateTime.now());
 
-                    if(doneHosts.size() == (allHosts.size() - 1)){
-                        System.out.println("Done : " + java.time.LocalDateTime.now());
-                        flushActivity(outputPath);
-                        return;
-                    }
+                    /* no need to flush here, the activity of the process is
+                     handled, process and write out in the handleSignal function in Main
+                     */
+                    //flushActivity(outputPath);
+
+                    return; //ACTUALLY DON'T
 
                 }
+
+                }
+                /**
                 if (received.get().getType() == MessageType.SIGINT || received.get().getType() == MessageType.SIGTERM) {
                     // we receive the order to kill the node
                     return;
-                }
-            }
+                }*/
+
         }
     }
+
 
 
 
@@ -103,7 +114,10 @@ public class Process {
     }
 
 
-    private void flushActivity(String path){
+    public void flushActivity(String path){
+        System.out.println("Flushing the activity to :");
+        System.out.println(path);
+        System.out.println("For process of Pid :" + this.pId);
         try {
             FileWriter output = new FileWriter(path);
             output.write(activity.toString());

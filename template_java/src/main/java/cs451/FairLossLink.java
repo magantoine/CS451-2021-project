@@ -1,11 +1,17 @@
-package cs451;
+package cs451.Links;
+
+import cs451.Constants;
+import cs451.MessageType;
+import cs451.Serialization.Serializer;
+import cs451.net.ActiveHost;
+import cs451.net.Message;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.Arrays;
 import java.util.Optional;
 
-public class FairLossLink implements Link{
+public class FairLossLink implements Link {
 
     private final String channelId;
     private final Serializer serializer;
@@ -74,7 +80,7 @@ public class FairLossLink implements Link{
         // we empty the receivePacket
         Arrays.fill(receivePacket, (byte)0);
         // we return build message once we know every component of it
-        return Optional.of(new Message(messageContent, messageType, new ActiveHost(packet.getPort() % Constants.BASE_PORT, packet.getAddress().getHostAddress(), packet.getPort())));
+        return Optional.of(new Message(messageContent, messageType, new ActiveHost(packet.getPort() - Constants.BASE_PORT, packet.getAddress().getHostAddress(), packet.getPort())));
     }
 
     public Optional<Message> waitForMessage() throws IOException {

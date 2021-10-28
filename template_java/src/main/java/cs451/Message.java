@@ -1,4 +1,6 @@
-package cs451;
+package cs451.net;
+
+import cs451.MessageType;
 
 public class Message {
 

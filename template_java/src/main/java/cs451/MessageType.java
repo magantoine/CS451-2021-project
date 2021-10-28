@@ -1,4 +1,4 @@
-package cs451;
+package cs451.Constants;
 
 public enum MessageType {
     MSG, ACK, TIMEOUT, SIGTERM, SIGINT, SIGDONE;

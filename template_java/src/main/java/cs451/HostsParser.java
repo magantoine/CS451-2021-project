@@ -1,10 +1,11 @@
-package cs451;
+package cs451.Parsers;
+
+import cs451.net.ActiveHost;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class HostsParser {
 
     private static final String HOSTS_KEY = "--hosts";
     private static final String SPACES_REGEX = "\\s+";
-    private static final String SEP = "/";
+    private static final String SEP = " ";
 
     private String filename;
     private List<ActiveHost> hosts = new ArrayList<>();

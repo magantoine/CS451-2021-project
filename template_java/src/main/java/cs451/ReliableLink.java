@@ -1,9 +1,12 @@
-package cs451;
+package cs451.Links;
+
+import cs451.net.Message;
+import cs451.MessageType;
 
 import java.io.IOException;
 import java.util.Optional;
 
-public class ReliableLink implements Link{
+public class ReliableLink implements Link {
 
     private final Link innerLink;
 
