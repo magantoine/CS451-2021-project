@@ -25,7 +25,7 @@ def get_random_string(length):
 
 ## GETTING PATHS ================================================================================
 
-shebang = "C:/Program Files/Git/bin/sh.exe" if("win" in sys.platform) else "/bin/sh"
+shebang = "C:/Program Files/Git/bin/sh.exe" if("win" in sys.platform) else "/bin/bash"
 
 subprocess.call([shebang, "./build.sh"])
 ## 2 - current working directory
@@ -56,8 +56,8 @@ if(not os.path.exists(os.path.join(PATH, "out"))):
 
 with open("./settings/config.txt", 'w') as config:
     config.write(str(m)) ## we write which process is suppose to send
-    config.write(" ")
-    config.write(str(base_pid)) ## we write the number of messages to send/ sender process
+    #config.write(" ")
+    #config.write(str(base_pid)) ## we write the number of messages to send/ sender process
     #config.write(" ")
     #rpayload = get_random_string(10)
     #print("CHOSEN RANDOM PAYLOAD : " + rpayload)
@@ -94,14 +94,11 @@ for i in range(1, process_nb + 1):
     print("> sender process launched")
 
 
-time.sleep(4) # sleeps for 4 seconds
+time.sleep(1000) # sleeps for 4 seconds
+
+[process.terminate() for process in processes]
 
 
-## killing process
-for p in processes :
-    
-    p.terminate()
-    print("Process killed !")
 
 
 

@@ -13,11 +13,13 @@ public class Main {
         System.out.println("Immediately stopping network packet processing.");
 
         //write/flush output file if necessary
-        System.out.println("Writing output.");
+        //System.out.println("Writing output.");
 
         // flushes the activity of the process when interrupted
         System.out.println("Dealing with interruption of process : " + currentProcess.getpId());
+        System.out.println("Flushed activity for process " + currentProcess.getpId());
         currentProcess.flushActivity(outPath);
+        System.out.println("Closing process " + currentProcess.getpId());
         currentProcess.close();
 
     }
@@ -33,11 +35,12 @@ public class Main {
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
+
          Parser parser = new Parser(args);
          parser.parse();
 
 
-
+        initSignalHandlers();
 
          /*
          Here the parser parsed everything in the command line :
@@ -51,33 +54,39 @@ public class Main {
 
 
         outPath = parser.output();
-         System.out.println("> INPUT PARSED");
-
-
+         //System.out.println("> INPUT PARSED");
          ActiveHost me = null;
-         ActiveHost receiver = null;
 
          for(ActiveHost host : parser.hosts()) {
              if (host.getId() == parser.myId()) {
                  me = host;
              }
-             if (host.getId() == parser.receiverPid()){
-                 receiver = host;
-             }
          }
 
-
-        if(parser.myId() == parser.receiverPid()){
-            System.out.println("> Receiver process launched for Host : " + me.toString());
-            runReceiver(me, parser.hosts(), parser.output());
-        } else {
-            System.out.println("> Sender process launched for Host : " + me.toString());
-            runSender(me, receiver, parser.numberOfMessage(), parser.output(), parser.hosts(), parser.payload());
-        }
+         // we got us
 
 
+        FairLossLink flLink = new FairLossLink("" + me.getId(), me.getPort(), new MessageSerializer(), me);
+        // we don't need the log for the senders
+        LogLink logLink = new LogLink(flLink);
+        ReliableLink rLink = new ReliableLink(logLink);
 
-        initSignalHandlers();
+        // sender host created
+        Process p = new Process(me.getId(), rLink, parser.hosts(), parser.output(), me);
+
+        currentProcess = p;
+
+
+        p.urbBroadcast(parser.numberOfMessage());
+
+
+
+
+
+
+
+
+
 
 
 
@@ -87,13 +96,13 @@ public class Main {
 }
 
 
-
+/**
 
     private static void runSender(ActiveHost selfHost, ActiveHost receiver, int m, String outputPath, List<ActiveHost> allHosts, String payload) throws IOException, InterruptedException {
 
 
 
-        FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new SimpleSerializer());
+        FairLossLink flLink = new FairLossLink("" + selfHost.getId(), selfHost.getPort(), new MessageSerializer());
         // we don't need the log for the senders
         //LogLink logLink = new LogLink(flLink);
         ReliableLink rLink = new ReliableLink(flLink);
@@ -120,9 +129,9 @@ public class Main {
 
         // create the process
         Process p = new Process(selfHost.getId(), rLink, allHost, outputPath);
-        System.out.println("========================================================================================");
-        System.out.println("Running as receiver with Pid : " + p.getpId() + " (out : " + outputPath + ")");
-        System.out.println("========================================================================================");
+        //System.out.println("========================================================================================");
+        //System.out.println("Running as receiver with Pid : " + p.getpId() + " (out : " + outputPath + ")");
+        //System.out.println("========================================================================================");
         currentProcess = p;
         // run the receiver behavior
         p.runAsReceiver(outputPath);
@@ -131,7 +140,7 @@ public class Main {
 
 
     }
-
+ */
     
 }
 

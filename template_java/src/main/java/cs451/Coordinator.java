@@ -38,11 +38,11 @@ public class Coordinator {
 	    Socket socket = connectToHost(barrierIp, barrierPort);
             InputStream input = socket.getInputStream();
             InputStreamReader reader = new InputStreamReader(input);
-            System.out.println("Accessing barrier...");
+            //System.out.println("Accessing barrier...");
             int character;
             while ((character = reader.read()) != -1) {}
         } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
+            //System.out.println("I/O error: " + ex.getMessage());
         }
     }
 
@@ -50,7 +50,7 @@ public class Coordinator {
 	try {
             signalSocket.close();
         } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
+            //System.out.println("I/O error: " + ex.getMessage());
         }
     }
 
@@ -67,7 +67,7 @@ public class Coordinator {
 
             writer.write(bb.array(), 0, 8);
         } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
+            //System.out.println("I/O error: " + ex.getMessage());
         }
 
         return socket;

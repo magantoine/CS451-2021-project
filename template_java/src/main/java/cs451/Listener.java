@@ -1,4 +1,10 @@
 package cs451;
 
-public interface Listener {
+import java.io.IOException;
+
+abstract class Listener {
+
+    abstract void runListener();
+
+    abstract public void deliver() throws IOException;
 }

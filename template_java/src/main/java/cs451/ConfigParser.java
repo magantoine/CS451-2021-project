@@ -31,9 +31,9 @@ public class ConfigParser {
 
         numberOfMsg = Integer.parseInt(args[0]);
 
-        receiverPid = Integer.parseInt(args[1]);
+        //receiverPid = Integer.parseInt(args[1]); there is no receiver now everyone is
 
-        payload = "";
+        payload = "BRUH";
 
         return false;
     }

@@ -1,9 +1,0 @@
-> INPUT PARSED
-> Sender process launched for Host : id: 3/ ip: localhost/port : 11003
-SENT EVERYTHING
-Immediately stopping network packet processing.
-Writing output.
-Dealing with interruption of process : 3
-Flushing the activity to :
-C:\Users\antom\Documents\LIFE\EPFL\MA\MA1\DA\CS451-2021-project\template_java\settings\out\proc03.output
-For process of Pid :3

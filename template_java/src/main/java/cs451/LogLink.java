@@ -15,7 +15,7 @@ public class LogLink implements Link {
 
     }
     @Override
-    public void rSend(String ipDest, int portDest, String message) throws IOException {
+    public void rSend(String ipDest, int portDest, Message message) throws IOException {
         this.innerLink.rSend(ipDest, portDest, message);
         this.log.write(ActionType.SEND + "/" + MessageType.MSG + " / (dest : " + ipDest + ":" + portDest + ") / content : { " + message + " }\n");
     }
@@ -23,8 +23,8 @@ public class LogLink implements Link {
     @Override
     public Optional<Message> waitForMessage(int timeout, boolean toAck) throws IOException {
         Optional<Message> rec = this.innerLink.waitForMessage(timeout, toAck);
-        Message parsed = rec.orElse(new Message("_", MessageType.TIMEOUT, null));
-        this.log.write(ActionType.RECEIVE + "/type : " + parsed.getType() + " /content : { " + parsed.getPayload() + " } \n");
+        Message parsed = rec.orElse(new Message("_", MessageType.TIMEOUT, null, null));
+        this.log.write("sender : " + parsed.getSender() + " / Osender : " + parsed.getOriginalSender() + " / " + ActionType.RECEIVE + " / type : " + parsed.getType() + " / content : { " + parsed.getPayload() + " } \n");
         return rec;
     }
 

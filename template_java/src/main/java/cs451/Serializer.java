@@ -2,7 +2,7 @@ package cs451;
 
 public interface Serializer{
 
-    public byte[] serialize(String toSend);
+    public byte[] serialize(Message toSend);
     public String deserialize(byte[] received);
 
 }

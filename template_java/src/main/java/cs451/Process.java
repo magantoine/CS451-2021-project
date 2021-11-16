@@ -2,28 +2,96 @@ package cs451;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 
 public class Process {
 
     private final int pId;
     private final Link rlink;
-    private final List<Message> delivered = new ArrayList();
+
     private final List<ActiveHost> doneHosts = new ArrayList<>();
     private final List<ActiveHost> allHosts;
-    private final StringBuilder activity = new StringBuilder();
+    private final List<String> activity = new CopyOnWriteArrayList<>();
     private final String outpath;
+    private final List<Message> delivered = new CopyOnWriteArrayList<>();
+    private final List<Message> pending = new CopyOnWriteArrayList<>();
+    private final ConcurrentMap<Pair<Integer, Integer>, List<Integer>> ack = new ConcurrentHashMap<>();
+    private final ActiveHost associatedHost;
+    boolean done = false;
 
 
 
 
-    public Process(int pId, Link rlink, List<ActiveHost> allHosts, String outPath){
+
+
+    public Process(int pId, Link rlink, List<ActiveHost> allHosts, String outPath, ActiveHost associatedHost){
         this.pId=pId;
         this.rlink = rlink;
         this.allHosts = allHosts;
         this.outpath = outPath;
+        this.associatedHost = associatedHost;
+    }
+
+
+    /**
+     * runs uniform reliable broadcast to send m messages to all other processes
+     * EVERY MESSAGE IN PENDING AND NOT DELIVERED YET FOR WHICH IT'S BEEN ACKED MY HALF OF PROCESS
+     * GOES IN DELIVER
+     * @param m number of message to send to the others
+     */
+    public void urbBroadcast(int m) throws IOException {
+
+        // creates listener (to deliver messages) and broadcaster (to send messages)
+        Broadcaster broadcaster = new UrbBroadcaster(this);
+        Listener listener = new UrbListener(this);
+
+        broadcaster.runBroadcaster(m);
+        listener.runListener();
+
+        while(true){
+            // this aims to check if message can be delivered
+
+            for(Message msg : pending){
+                Pair keyPair = new Pair(msg.getOriginalSender().getId(), Integer.parseInt(msg.getPayload()) + 1);
+                try{
+                    ack.get(keyPair).size();
+                } catch(NullPointerException e){
+                    continue; // don't worry you'll have it the next round
+                }
+
+                if(ack.get(keyPair).size() > (allHosts.size() / 2)){
+                    // at least half of the processes acked it
+                    if(!delivered.contains(msg)){
+                        // message hasn't been delivered yet ==> deliver it
+                        delivered.add(msg);
+
+                        // sequence number starts at 1 and our counter at 0
+                        activity.add("d " + msg.getSender().getId() + " " + (Integer.parseInt(msg.getPayload()) + 1)+ "\n");
+
+
+                        if(delivered.size() == m * (allHosts.size())){
+                            done = true;
+                            // we're done
+                            //return;
+                        }
+
+                    }
+                }
+            }
+
+        }
+
+
+
+
+
+
+
+
     }
 
     /**
@@ -31,13 +99,15 @@ public class Process {
      * @param m number of messages to send to the receiver
      * @param receiver host that has to receive the message
      */
-    public void runAsSender(int m, ActiveHost receiver, String outputPath, String payload) throws IOException {
+    public void runAsSender(int m, ActiveHost receiver, String outputPath, String payload, ActiveHost me) throws IOException {
         int toSend = 0;
         while(toSend != m){
             // random payload
             String content = payload + toSend;
-            rlink.rSend(receiver.getIp(), receiver.getPort(), content);
-            activity.append("b " + content + "\n");
+            Message msg = new Message(payload + toSend, MessageType.MSG, me, me);
+            rlink.rSend(receiver.getIp(), receiver.getPort(), msg);
+            // counter starts at 0 but sequence number starts at 1
+            activity.add("b " + (content + 1) + "\n");
             toSend ++;
             if(toSend == 1){
 
@@ -45,13 +115,13 @@ public class Process {
         }
 
         // we tell the receiver we're done
-        rlink.rSend(receiver.getIp(), receiver.getPort(), ">>>SIGDONE");
+        rlink.rSend(receiver.getIp(), receiver.getPort(), new Message("", MessageType.SIGDONE, me, me));
 
         /* no need to flush here, the activity of the process is
            handled, process and write out in the handleSignal function in Main
          */
         //flushActivity(outputPath);
-        System.out.println("SENT EVERYTHING");
+        //System.out.println("SENT EVERYTHING");
 
 
 
@@ -62,14 +132,14 @@ public class Process {
         while (true) {
             Optional<Message> received = this.rlink.waitForMessage(1000, true);
             if (received.isPresent()) {
-                delivered.add(received.get());
+                //delivered.add(received.get());
                 receivedOne++;
                 if(receivedOne == 1){
-                    System.out.println("start : " + java.time.LocalDateTime.now());
+                    //System.out.println("start : " + java.time.LocalDateTime.now());
                 }
 
                 if(received.get().getType() == MessageType.MSG) {
-                    activity.append("d " + received.get().getPayload() + " " + received.get().getSender().getId() + "\n");
+                    activity.add("d " + received.get().getPayload() + " " + received.get().getSender().getId() + "\n");
                 }
 
 
@@ -82,7 +152,7 @@ public class Process {
                 }
 
                 if(doneHosts.size() == (allHosts.size() - 1)){
-                    System.out.println("Done : " + java.time.LocalDateTime.now());
+                    //System.out.println("Done : " + java.time.LocalDateTime.now());
 
                     /* no need to flush here, the activity of the process is
                      handled, process and write out in the handleSignal function in Main
@@ -104,30 +174,53 @@ public class Process {
     }
 
 
-
-
-
     public int getpId() {
         return pId;
     }
 
+    public List<Message> getDelivered() {
+        return delivered;
+    }
+
+    public List<Message> getPending() {
+        return pending;
+    }
+
+    public Map<Pair<Integer, Integer>, List<Integer>> getAck() {
+        return ack;
+    }
+
+    public ActiveHost getAssociatedHost(){ return associatedHost; }
 
 
 
+    public void addActivity(String act){
+        activity.add(act);
+    }
+    public List<ActiveHost> getAllHosts() {
+        return allHosts;
+    }
+
+    public Link getRlink() {
+        return rlink;
+    }
 
     public void flushActivity(String path){
-        System.out.println("Flushing the activity to :");
-        System.out.println(path);
-        System.out.println("For process of Pid :" + this.pId);
+        //System.out.println("Flushing the activity to :");
+        //System.out.println(path);
+        //System.out.println("For process of Pid :" + this.pId);
         try {
             FileWriter output = new FileWriter(path);
-            output.write(activity.toString());
+            for(String act : activity){
+                output.write(act);
+            }
+
             output.flush();
             output.close();
 
 
         } catch (IOException e) {
-            System.out.println("Couldn't write out activity");
+            //System.out.println("Couldn't write out activity");
         }
     }
 
