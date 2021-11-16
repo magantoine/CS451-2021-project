@@ -4,10 +4,10 @@ import cs451.Serializer;
 
 import java.nio.charset.StandardCharsets;
 
-public class SimpleSerializer implements Serializer {
+public class ContentSerializer implements Serializer {
 
-    public byte[] serialize(String message){
-        return message.getBytes();
+    public byte[] serialize(Message message){
+        return message.getPayload().getBytes();
     }
 
     public String deserialize(byte[] message){
