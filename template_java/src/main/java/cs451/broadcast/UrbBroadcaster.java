@@ -57,7 +57,7 @@ public class UrbBroadcaster implements Broadcaster {
                 }
             }
             // we broadcast message from 1 to m
-            leader.addActivity("b " + (Integer.parseInt(customPayload) + 1) + "\n");
+            leader.addBroadcastedMessage(msg);//"b " + (Integer.parseInt(customPayload) + 1) + "\n");
         }
 
 

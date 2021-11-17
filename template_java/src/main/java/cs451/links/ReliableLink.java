@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ReliableLink extends Link implements Observer {
+public class ReliableLink extends Link implements Observer<Message> {
 
     private final Link innerLink;
     private final ConcurrentHashMap<Triple<String, Integer, Message>, Pair<Boolean, Boolean>> acked = new ConcurrentHashMap<>();

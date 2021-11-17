@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Link extends Observable {
+public abstract class Link extends Observable<Message> {
 
     abstract public void rSend(String ipDest, int portDest, Message message) throws IOException;
 

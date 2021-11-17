@@ -12,11 +12,13 @@ public class Message {
     private final ActiveHost sender;
     private final ActiveHost originalSender;
 
+
     public Message(String payload, MessageType type, ActiveHost sender, ActiveHost originalSender){
         this.payload = payload;
         this.type = type;
         this.sender = sender;
         this.originalSender = originalSender;
+
     }
 
     public Message(String desc){
@@ -35,6 +37,7 @@ public class Message {
         this.originalSender = new ActiveHost(originalSenderId, "localhost", Constants.BASE_PORT + originalSenderId );
 
 
+
     }
 
     public MessageType getType() {
@@ -43,6 +46,10 @@ public class Message {
 
     public String getPayload() {
         return payload;
+    }
+
+    public int getId(){
+        return Integer.parseInt(payload.split("-")[0]);
     }
 
     public ActiveHost getSender(){ return sender; }

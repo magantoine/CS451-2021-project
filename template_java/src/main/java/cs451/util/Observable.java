@@ -6,14 +6,14 @@ import cs451.Message;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Observable {
+public abstract class Observable<S> {
     public final List<Observer> observers = new ArrayList<>();
 
     public void register(Observer o){
         observers.add(o);
     }
 
-    public void share(Message m){
-        observers.forEach(o -> o.receive(m));
+    public void share(S s){
+        observers.forEach(o -> o.receive(s));
     }
 }

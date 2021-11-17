@@ -7,7 +7,7 @@ import cs451.util.OutputLog;
 
 import java.io.IOException;
 
-public class LogLink extends Link implements Observer {
+public class LogLink extends Link implements Observer<Message> {
     private final OutputLog log;
     private final Link innerLink;
 

@@ -1,5 +1,6 @@
 package cs451.broadcast;
 
+import cs451.ActionType;
 import cs451.ActiveHost;
 import cs451.Message;
 import cs451.broadcast.Broadcaster;
@@ -14,17 +15,17 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import cs451.util.Observable;
 
 
-public class UrbBroadcastManager {
+public class UrbBroadcastManager extends Observable<Pair<Message, ActionType>>{
 
     private final int pId;
     private final Link rlink;
 
-    private final List<ActiveHost> doneHosts = new ArrayList<>();
+
     private final List<ActiveHost> allHosts;
-    private final List<String> activity = new CopyOnWriteArrayList<>();
-    private final String outpath;
+
     private final List<Pair<Integer, Integer>> delivered = new CopyOnWriteArrayList<>();
     private final List<Message> pending = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<Pair<Integer, Integer>, List<Integer>> ack = new ConcurrentHashMap<>();
@@ -36,7 +37,6 @@ public class UrbBroadcastManager {
         this.pId=pId;
         this.rlink = rlink;
         this.allHosts = allHosts;
-        this.outpath = outPath;
         this.associatedHost = associatedHost;
     }
 
@@ -74,7 +74,8 @@ public class UrbBroadcastManager {
                         // message hasn't been delivered yet ==> deliver it
                         delivered.add(keyPair);
                         // sequence number starts at 1 and our counter at 0
-                        activity.add("d " + keyPair._1() + " " + keyPair._2() + "\n");
+                        //this.share("d " + keyPair._1() + " " + keyPair._2() + "\n");
+                        this.share(new Pair(msg, ActionType.RECEIVE));
 
 
                     }
@@ -84,6 +85,10 @@ public class UrbBroadcastManager {
         }
     }
 
+
+    public void addBroadcastedMessage(Message msg){
+        this.share(new Pair(msg, ActionType.SEND));
+    }
     public int getpId() {
         return pId;
     }
@@ -102,9 +107,7 @@ public class UrbBroadcastManager {
 
     public ActiveHost getAssociatedHost(){ return associatedHost; }
 
-    public void addActivity(String act){
-        activity.add(act);
-    }
+
 
     public List<ActiveHost> getAllHosts() {
         return allHosts;
@@ -114,24 +117,7 @@ public class UrbBroadcastManager {
         return rlink;
     }
 
-    public void flushActivity(String path){
-        //System.out.println("Flushing the activity to :");
-        //System.out.println(path);
-        //System.out.println("For process of Pid :" + this.pId);
-        try {
-            FileWriter output = new FileWriter(path);
-            for(String act : activity){
-                output.write(act);
-            }
 
-            output.flush();
-            output.close();
-
-
-        } catch (IOException e) {
-            //System.out.println("Couldn't write out activity");
-        }
-    }
 
     public void close(){
         rlink.close();
