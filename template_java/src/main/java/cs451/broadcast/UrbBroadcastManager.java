@@ -1,5 +1,7 @@
-package cs451;
+package cs451.broadcast;
 
+import cs451.ActiveHost;
+import cs451.Message;
 import cs451.broadcast.Broadcaster;
 import cs451.broadcast.UrbBroadcaster;
 import cs451.broadcast.UrbListener;
@@ -14,7 +16,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
-public class Process {
+public class UrbBroadcastManager {
 
     private final int pId;
     private final Link rlink;
@@ -27,14 +29,10 @@ public class Process {
     private final List<Message> pending = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<Pair<Integer, Integer>, List<Integer>> ack = new ConcurrentHashMap<>();
     private final ActiveHost associatedHost;
-    boolean done = false;
 
 
 
-
-
-
-    public Process(int pId, Link rlink, List<ActiveHost> allHosts, String outPath, ActiveHost associatedHost){
+    public UrbBroadcastManager(int pId, Link rlink, List<ActiveHost> allHosts, String outPath, ActiveHost associatedHost){
         this.pId=pId;
         this.rlink = rlink;
         this.allHosts = allHosts;

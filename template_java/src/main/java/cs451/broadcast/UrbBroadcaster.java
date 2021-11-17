@@ -1,7 +1,7 @@
 package cs451.broadcast;
 
 import cs451.*;
-import cs451.Process;
+import cs451.broadcast.UrbBroadcastManager;
 import cs451.util.Pair;
 
 import java.io.IOException;
@@ -10,10 +10,10 @@ import java.util.Arrays;
 
 public class UrbBroadcaster implements Broadcaster {
 
-    private final Process leader;
+    private final UrbBroadcastManager leader;
     private final ActiveHost me;
 
-    public UrbBroadcaster(Process p){
+    public UrbBroadcaster(UrbBroadcastManager p){
         this.me = p.getAssociatedHost();
         leader = p;
     }

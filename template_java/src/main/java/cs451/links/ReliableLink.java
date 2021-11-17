@@ -2,6 +2,7 @@ package cs451.links;
 
 
 import cs451.*;
+import cs451.util.Observer;
 import cs451.util.Pair;
 import cs451.util.Triple;
 
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ReliableLink extends Link implements LinkObserver {
+public class ReliableLink extends Link implements Observer {
 
     private final Link innerLink;
     private final ConcurrentHashMap<Triple<String, Integer, Message>, Pair<Boolean, Boolean>> acked = new ConcurrentHashMap<>();
@@ -51,7 +52,8 @@ public class ReliableLink extends Link implements LinkObserver {
             var key = new Triple(message.getSender().getId(), message.getOriginalSender().getId(), Integer.parseInt(message.getPayload()) + 1);
             if(!delivered.contains(key)) {
                 delivered.add(key);
-                observers.forEach(o -> o.receive(message));
+                //observers.forEach(o -> o.receive(message));
+                this.share(message);
             }
         } else {
             // we received an ACK message

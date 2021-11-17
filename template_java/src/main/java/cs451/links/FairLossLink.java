@@ -60,7 +60,8 @@ public class FairLossLink extends Link {
                 if (receivedComponents.length > 3) {
                     received = new Message(data);
                     Message finalReceived = received;
-                    observers.forEach(o -> o.receive(finalReceived));
+                    //observers.forEach(o -> o.receive(finalReceived));
+                    this.share(finalReceived);
                 } else {
                     //System.out.println("Received this shit : " + data + " received content length is " + receivedComponents.length);
                 }

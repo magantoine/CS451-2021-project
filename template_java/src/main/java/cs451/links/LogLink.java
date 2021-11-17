@@ -2,11 +2,12 @@ package cs451.links;
 
 
 import cs451.*;
+import cs451.util.Observer;
 import cs451.util.OutputLog;
 
 import java.io.IOException;
 
-public class LogLink extends Link implements LinkObserver {
+public class LogLink extends Link implements Observer {
     private final OutputLog log;
     private final Link innerLink;
 
@@ -46,6 +47,7 @@ public class LogLink extends Link implements LinkObserver {
         }
 
 
-        observers.forEach(o -> o.receive(message));
+        //observers.forEach(o -> o.receive(message));
+        this.share(message);
     }
 }

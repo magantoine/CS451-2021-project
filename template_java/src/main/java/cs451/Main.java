@@ -1,5 +1,6 @@
 package cs451;
 
+import cs451.broadcast.UrbBroadcastManager;
 import cs451.links.FairLossLink;
 import cs451.links.ReliableLink;
 
@@ -7,7 +8,7 @@ import java.io.IOException;
 
 public class Main {
 
-    private static Process currentProcess = null;
+    private static UrbBroadcastManager currentProcess = null;
     private static String outPath = null;
 
     private static void handleSignal() {
@@ -81,7 +82,7 @@ public class Main {
 
 
         // sender host created
-        Process p = new Process(me.getId(), rLink, parser.hosts(), parser.output(), me);
+        var p = new UrbBroadcastManager(me.getId(), rLink, parser.hosts(), parser.output(), me);
 
         currentProcess = p;
 

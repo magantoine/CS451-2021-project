@@ -1,8 +1,8 @@
 package cs451.broadcast;
 
 import cs451.*;
-import cs451.Process;
-import cs451.links.LinkObserver;
+import cs451.broadcast.UrbBroadcastManager;
+import cs451.util.Observer;
 import cs451.util.Pair;
 
 
@@ -11,12 +11,12 @@ import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class UrbListener extends Listener implements LinkObserver {
+public class UrbListener extends Listener implements Observer {
 
-    private final Process leader;
+    private final UrbBroadcastManager leader;
     private final ArrayBlockingQueue<Message> messages = new ArrayBlockingQueue<Message>(3000);
 
-    public UrbListener(Process p){
+    public UrbListener(UrbBroadcastManager p){
         // creates a Urb Listener
         leader = p;
 
