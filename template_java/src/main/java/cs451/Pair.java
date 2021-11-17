@@ -28,7 +28,7 @@ public class Pair<S, T> {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Pair){
-            Pair objP = (Pair)obj;
+            Pair<?, ?> objP = (Pair<?, ?>)obj;
             return objP._1().equals(this._1()) && objP._2().equals(this._2());
         } else {
             return false;

@@ -66,10 +66,17 @@ public class Main {
          // we got us
 
 
-        FairLossLink flLink = new FairLossLink("" + me.getId(), me.getPort(), new MessageSerializer(), me);
-        // we don't need the log for the senders
-        LogLink logLink = new LogLink(flLink);
-        ReliableLink rLink = new ReliableLink(logLink);
+        FairLossLink flLink = new FairLossLink(me.getPort(), new MessageSerializer(), me);
+
+        //LogLink logLink = new LogLink(flLink, me.getId());
+
+        ReliableLink rLink = new ReliableLink(flLink, me);
+
+        // both registered to fl's received
+
+        flLink.register(rLink);
+        //rLink.register(logLink);
+
 
         // sender host created
         Process p = new Process(me.getId(), rLink, parser.hosts(), parser.output(), me);
@@ -78,20 +85,6 @@ public class Main {
 
 
         p.urbBroadcast(parser.numberOfMessage());
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
 

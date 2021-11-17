@@ -1,84 +1,105 @@
 package cs451;
 
-import cs451.Link;
-import cs451.Message;
-import cs451.MessageType;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class ReliableLink implements Link {
+public class ReliableLink extends Link implements LinkObserver {
 
     private final Link innerLink;
-    private final List<Message> ackedMessages = new ArrayList<Message>();
-    private final List<Message> received = new ArrayList<Message>();
+    private final ConcurrentHashMap<Triple<String, Integer, Message>, Pair<Boolean, Boolean>> acked = new ConcurrentHashMap<>();
+    private final ActiveHost me;
+    private final ArrayList<Triple<Integer, Integer, Integer>> delivered = new ArrayList<>();
 
-    public ReliableLink(Link flLink){
+
+
+    public ReliableLink(Link flLink, ActiveHost me){
         this.innerLink = flLink;
+        this.me = me;
+
+
+        Thread sender = new Thread(this::runSender);
+        sender.setDaemon(true);
+        sender.start();
 
     }
+
+
     @Override
     public void rSend(String ipDest, int portDest, Message message) throws IOException {
-        /**
-         * Here the goal is to 1) send using the fairloss link, wait 1000 ms for a ACK,
-         * if no hack is received start again
-         */
-        if(ackedMessages.contains(message)){
-            // if we get here it means the message has already been sent and properly acked by receiver
-            // we have simply nothing to do and can carry on
-            return;
+        // we put as (unacked, undelivered)
+        acked.put(new Triple<String, Integer, Message>(ipDest, portDest, message), new Pair(false, false));
+
+    }
+
+
+    @Override
+    public void receive(Message message) {
+        if(!message.getType().equals(MessageType.ACK)){
+            try{
+                // send ACK
+                this.innerLink.rSend(message.getSender().getIp(), message.getSender().getPort(), new Message(message.getPayload(), MessageType.ACK, this.me, this.me));
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+
+            var key = new Triple(message.getSender().getId(), message.getOriginalSender().getId(), Integer.parseInt(message.getPayload()) + 1);
+            if(!delivered.contains(key)) {
+                delivered.add(key);
+                observers.forEach(o -> o.receive(message));
+            }
+        } else {
+            // we received an ACK message
+
+            // we reconstruct the message
+            var msgPayload = Integer.parseInt(message.getPayload());
+            var senderIp = message.getSender().getIp();
+            var senderPortNb = message.getSender().getPort();
+
+
+            var searchedKey = new Triple(senderIp, senderPortNb, msgPayload);
+            for (var msg : acked.entrySet()){
+                var key = msg.getKey();
+
+                var compareKey = new Triple(key._1(), key._2(), Integer.parseInt(key._3().toString().split(">>>")[3]));
+                if(compareKey.equals(searchedKey)){
+                    // we found the message associated to the received ACK
+                    acked.replace(key, new Pair(true, false)); // set as ACKED
+
+                }
+            }
         }
-        boolean acked = false;
-
-        while(!acked){
-            // we send the message
-            innerLink.rSend(ipDest, portDest, message);
-            // we wait for an ACK (no ACK in return)
-            Optional<Message> res = waitForMessage(5000, true);
-            acked = res.isPresent() && res.get().getType() == MessageType.ACK;
-
-        }
-        System.out.println("Message " + message + " got acked");
-        ackedMessages.add(message); // message has been acked properly
-
-        // if we get here means, we sent a message and received an ACK
     }
 
     @Override
-    public Optional<Message> waitForMessage(int timeout, boolean toAck) throws IOException {
-        // short time out
-        // waits for a message and ACK for it
-        return innerLink.waitForMessage(5000, true);
+    public void deliver() {
+        
     }
 
-    @Override
-    public Optional<Message> waitForMessage() throws IOException {
-        // long time out
-        Optional<Message> msg = innerLink.waitForMessage(100000, true);
-        if(!msg.isPresent()){
-            return msg;
+    private void runSender(){
+        while(true){
+            // we retransmit all the non acked messages
+
+            acked.forEach((msg, ack) ->{
+                if(!ack._1() && !ack._2()){
+                    try {
+                        innerLink.rSend(msg._1(), msg._2(), msg._3());
+                    } catch (IOException e){
+                        e.printStackTrace();
+                    }
+                } else if (ack._1() && !ack._2()){
+                    acked.replace(msg, new Pair(true, true));
+                }
+            });
+
         }
-        Message unfolded = msg.get();
-
-        // we don't deliver twice the same message and don't deliver ACKs
-        if(received.contains(unfolded) || unfolded.getType().equals(MessageType.ACK)){
-            return Optional.empty();
-        }
-
-        System.out.println("Received : " + unfolded);
-        received.add(unfolded);
-        return msg;
-
-    }
-
-    public String getChannelId(){
-        return this.innerLink.getChannelId();
     }
 
     public void close(){
         this.innerLink.close();
     }
+
 
 }

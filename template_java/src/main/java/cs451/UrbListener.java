@@ -5,14 +5,19 @@ import cs451.Message;
 
 import java.util.*;
 import java.io.IOException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-public class UrbListener extends Listener {
+public class UrbListener extends Listener implements LinkObserver{
 
     private final Process leader;
+    private final ArrayBlockingQueue<Message> messages = new ArrayBlockingQueue<Message>(3000);
 
     public UrbListener(Process p){
         // creates a Urb Listener
         leader = p;
+
+        p.getRlink().register(this);
 
     }
 
@@ -38,22 +43,23 @@ public class UrbListener extends Listener {
     public void deliver() throws IOException {
         int received_card = 0;
         while (!leader.done) {
-            Optional<Message> received = leader.getRlink().waitForMessage();
+            Message received = null;
 
-            if (received.isPresent()) {
+            try {
+                received = messages.poll((long)1000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+
+            if (received != null) {
                 received_card ++;
 
+                if(received.getType() != MessageType.ACK){
+                    var receivedUnfold = received;
 
-                //System.out.println(leader.getpId() + ") Pending : " + leader.getPending());
-                //System.out.println(leader.getpId() + ") Delivered : " + leader.getDelivered());
-                //System.out.println(leader.getpId() + ") acks : " + leader.getAck());
-
-                if(received.get().getType() != MessageType.ACK){
-                    Message receivedUnfold = received.get();
                     int senderPid = receivedUnfold.getSender().getId();
                     Pair keyPair = new Pair(receivedUnfold.getOriginalSender().getId(), Integer.parseInt(receivedUnfold.getPayload()) + 1);
-
-                    System.out.println(leader.getpId() +" get acked : " + leader.getAck());
 
 
                     // ALREADY AN ENTRY IN ACK OR NOT ? CREATE IT
@@ -71,10 +77,11 @@ public class UrbListener extends Listener {
                     if (!leader.getPending().contains(receivedUnfold)) {
                         // the received message is not pending
 
-                        leader.getPending().add(receivedUnfold);// added to pending message
+                        leader.getPending().add(receivedUnfold); // added to pending message
 
                         Message msg = new Message(receivedUnfold.getPayload(), receivedUnfold.getType(), leader.getAssociatedHost(), receivedUnfold.getOriginalSender());
                         // then we BEBBroadcast :
+
                         leader.getAllHosts().forEach(h -> {
                             // we don't resend it to the guy who sent it to us (he's already in ACK)
                             if(!h.equals(leader.getAssociatedHost())) {
@@ -91,6 +98,13 @@ public class UrbListener extends Listener {
     }
 
 
-
+    @Override
+    public void receive(Message message) {
+        try {
+            messages.put(message);
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        }
+    }
 }
 

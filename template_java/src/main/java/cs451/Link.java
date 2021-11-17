@@ -3,17 +3,21 @@ package cs451;
 import cs451.Message;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-public interface Link {
+abstract class Link {
+    public final List<LinkObserver> observers = new ArrayList<>();
 
-    public void rSend(String ipDest, int portDest, Message message) throws IOException;
+    abstract public void rSend(String ipDest, int portDest, Message message) throws IOException;
 
-    public Optional<Message> waitForMessage(int timeout, boolean toAck) throws IOException;
+    abstract public void deliver();
 
-    public Optional<Message> waitForMessage() throws IOException;
+    public void register(LinkObserver observer){
+        observers.add(observer);
+    }
 
-    String getChannelId();
 
-    public void close();
+    abstract public void close();
 }

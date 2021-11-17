@@ -17,7 +17,7 @@ public class Process {
     private final List<ActiveHost> allHosts;
     private final List<String> activity = new CopyOnWriteArrayList<>();
     private final String outpath;
-    private final List<Message> delivered = new CopyOnWriteArrayList<>();
+    private final List<Pair<Integer, Integer>> delivered = new CopyOnWriteArrayList<>();
     private final List<Message> pending = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<Pair<Integer, Integer>, List<Integer>> ack = new ConcurrentHashMap<>();
     private final ActiveHost associatedHost;
@@ -56,129 +56,35 @@ public class Process {
             // this aims to check if message can be delivered
 
             for(Message msg : pending){
-                Pair keyPair = new Pair(msg.getOriginalSender().getId(), Integer.parseInt(msg.getPayload()) + 1);
+                var keyPair = new Pair(msg.getOriginalSender().getId(), Integer.parseInt(msg.getPayload()) + 1);
                 try{
                     ack.get(keyPair).size();
                 } catch(NullPointerException e){
                     continue; // don't worry you'll have it the next round
                 }
 
-                if(ack.get(keyPair).size() > (allHosts.size() / 2)){
+                if(ack.get(keyPair).size() >= (allHosts.size() / 2)){
                     // at least half of the processes acked it
-                    if(!delivered.contains(msg)){
+
+                    if(!delivered.contains(keyPair)){
                         // message hasn't been delivered yet ==> deliver it
-                        delivered.add(msg);
-
+                        delivered.add(keyPair);
                         // sequence number starts at 1 and our counter at 0
-                        activity.add("d " + msg.getSender().getId() + " " + (Integer.parseInt(msg.getPayload()) + 1)+ "\n");
+                        activity.add("d " + keyPair._1() + " " + keyPair._2() + "\n");
 
-
-                        if(delivered.size() == m * (allHosts.size())){
-                            done = true;
-                            // we're done
-                            //return;
-                        }
 
                     }
                 }
             }
 
         }
-
-
-
-
-
-
-
-
     }
-
-    /**
-     * runs the process as a sender
-     * @param m number of messages to send to the receiver
-     * @param receiver host that has to receive the message
-     */
-    public void runAsSender(int m, ActiveHost receiver, String outputPath, String payload, ActiveHost me) throws IOException {
-        int toSend = 0;
-        while(toSend != m){
-            // random payload
-            String content = payload + toSend;
-            Message msg = new Message(payload + toSend, MessageType.MSG, me, me);
-            rlink.rSend(receiver.getIp(), receiver.getPort(), msg);
-            // counter starts at 0 but sequence number starts at 1
-            activity.add("b " + (content + 1) + "\n");
-            toSend ++;
-            if(toSend == 1){
-
-            }
-        }
-
-        // we tell the receiver we're done
-        rlink.rSend(receiver.getIp(), receiver.getPort(), new Message("", MessageType.SIGDONE, me, me));
-
-        /* no need to flush here, the activity of the process is
-           handled, process and write out in the handleSignal function in Main
-         */
-        //flushActivity(outputPath);
-        //System.out.println("SENT EVERYTHING");
-
-
-
-    }
-
-    public void runAsReceiver(String outputPath) throws IOException {
-        int receivedOne = 0;
-        while (true) {
-            Optional<Message> received = this.rlink.waitForMessage(1000, true);
-            if (received.isPresent()) {
-                //delivered.add(received.get());
-                receivedOne++;
-                if(receivedOne == 1){
-                    //System.out.println("start : " + java.time.LocalDateTime.now());
-                }
-
-                if(received.get().getType() == MessageType.MSG) {
-                    activity.add("d " + received.get().getPayload() + " " + received.get().getSender().getId() + "\n");
-                }
-
-
-                if (received.get().getType() == MessageType.SIGDONE && (!doneHosts.contains(received.get().getSender()))) {
-                    // one of the sender is done
-                    doneHosts.add(received.get().getSender());
-
-                    //check if we're totally done
-                    //return;
-                }
-
-                if(doneHosts.size() == (allHosts.size() - 1)){
-                    //System.out.println("Done : " + java.time.LocalDateTime.now());
-
-                    /* no need to flush here, the activity of the process is
-                     handled, process and write out in the handleSignal function in Main
-                     */
-                    //flushActivity(outputPath);
-
-                    return; //ACTUALLY DON'T
-
-                }
-
-                }
-                /**
-                if (received.get().getType() == MessageType.SIGINT || received.get().getType() == MessageType.SIGTERM) {
-                    // we receive the order to kill the node
-                    return;
-                }*/
-
-        }
-    }
-
 
     public int getpId() {
         return pId;
     }
 
-    public List<Message> getDelivered() {
+    public List<Pair<Integer, Integer>> getDelivered() {
         return delivered;
     }
 
@@ -192,11 +98,10 @@ public class Process {
 
     public ActiveHost getAssociatedHost(){ return associatedHost; }
 
-
-
     public void addActivity(String act){
         activity.add(act);
     }
+
     public List<ActiveHost> getAllHosts() {
         return allHosts;
     }

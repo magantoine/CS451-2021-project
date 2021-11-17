@@ -4,14 +4,15 @@ package cs451;
 import java.io.IOException;
 import java.util.Optional;
 
-public class LogLink implements Link {
+public class LogLink extends Link implements LinkObserver {
     private final OutputLog log;
     private final Link innerLink;
 
 
-    public LogLink(Link innerLink) throws IOException {
-        this.log = new OutputLog(Constants.PATH + "/outlog_p" + innerLink.getChannelId() + ".log");
+    public LogLink(Link innerLink, int id) throws IOException {
+        this.log = new OutputLog(Constants.PATH + "/outlog_p" + id + ".log");
         this.innerLink = innerLink;
+
 
     }
     @Override
@@ -21,21 +22,8 @@ public class LogLink implements Link {
     }
 
     @Override
-    public Optional<Message> waitForMessage(int timeout, boolean toAck) throws IOException {
-        Optional<Message> rec = this.innerLink.waitForMessage(timeout, toAck);
-        Message parsed = rec.orElse(new Message("_", MessageType.TIMEOUT, null, null));
-        this.log.write("sender : " + parsed.getSender() + " / Osender : " + parsed.getOriginalSender() + " / " + ActionType.RECEIVE + " / type : " + parsed.getType() + " / content : { " + parsed.getPayload() + " } \n");
-        return rec;
-    }
+    public void deliver() {
 
-    @Override
-    public Optional<Message> waitForMessage() throws IOException {
-        return this.waitForMessage(100000, false);
-    }
-
-    @Override
-    public String getChannelId() {
-        return this.innerLink.getChannelId();
     }
 
     public void close(){
@@ -45,5 +33,17 @@ public class LogLink implements Link {
         } catch (IOException e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void receive(Message message) {
+        try{
+            this.log.write(ActionType.RECEIVE + "/" + message.getType() + " / / content : { " + message + " }\n");
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+
+        observers.forEach(o -> o.receive(message));
     }
 }

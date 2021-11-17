@@ -22,6 +22,6 @@ public class Constants {
 
     public static final String PATH = "C:/Users/antom/Documents/LIFE/EPFL/MA/MA1/DA/CS451-2021-project/template_java/log";
 
-    public static final int BASE_PORT = 11100;
+    public static final int BASE_PORT = 11000;
 }
 

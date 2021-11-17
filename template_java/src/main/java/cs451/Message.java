@@ -31,8 +31,8 @@ public class Message {
         Integer originalSenderId = Integer.parseInt(content[2]);
 
         this.payload = content[3];
-        this.sender = new ActiveHost(senderId, "localhost", Constants.BASE_PORT + senderId);
-        this.originalSender = new ActiveHost(originalSenderId, "localhost", Constants.BASE_PORT + originalSenderId);
+        this.sender = new ActiveHost(senderId, "localhost", Constants.BASE_PORT + senderId - 1);
+        this.originalSender = new ActiveHost(originalSenderId, "localhost", Constants.BASE_PORT + originalSenderId );
 
 
     }
