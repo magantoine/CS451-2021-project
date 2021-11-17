@@ -1,4 +1,4 @@
-package cs451;
+package cs451.broadcast;
 
 import java.io.IOException;
 

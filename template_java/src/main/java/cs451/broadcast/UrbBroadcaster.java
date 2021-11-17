@@ -1,4 +1,8 @@
-package cs451;
+package cs451.broadcast;
+
+import cs451.*;
+import cs451.Process;
+import cs451.util.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,13 +60,7 @@ public class UrbBroadcaster implements Broadcaster {
             leader.addActivity("b " + (Integer.parseInt(customPayload) + 1) + "\n");
         }
 
-        while(leader.done){
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e){
-                // nothing
-            }
-        }
+
 
         // if we get here we sent everything
     }

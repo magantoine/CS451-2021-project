@@ -1,8 +1,10 @@
-package cs451;
+package cs451.links;
 
+
+import cs451.*;
+import cs451.util.OutputLog;
 
 import java.io.IOException;
-import java.util.Optional;
 
 public class LogLink extends Link implements LinkObserver {
     private final OutputLog log;

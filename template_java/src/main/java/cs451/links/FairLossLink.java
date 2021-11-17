@@ -1,5 +1,8 @@
-package cs451;
+package cs451.links;
 
+import cs451.ActiveHost;
+import cs451.Constants;
+import cs451.Message;
 import cs451.Serializer;
 
 import java.io.IOException;

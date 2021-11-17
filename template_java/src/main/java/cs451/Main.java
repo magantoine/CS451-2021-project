@@ -1,7 +1,9 @@
 package cs451;
 
+import cs451.links.FairLossLink;
+import cs451.links.ReliableLink;
+
 import java.io.IOException;
-import java.util.List;
 
 public class Main {
 

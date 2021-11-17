@@ -1,10 +1,13 @@
-package cs451;
+package cs451.links;
 
+
+import cs451.*;
+import cs451.util.Pair;
+import cs451.util.Triple;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReliableLink extends Link implements LinkObserver {
 

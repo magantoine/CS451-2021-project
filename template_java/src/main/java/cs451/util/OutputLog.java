@@ -1,4 +1,4 @@
-package cs451;
+package cs451.util;
 
 import java.io.File;
 import java.io.FileWriter;

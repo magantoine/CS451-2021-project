@@ -1,5 +1,11 @@
 package cs451;
 
+import cs451.broadcast.Broadcaster;
+import cs451.broadcast.UrbBroadcaster;
+import cs451.broadcast.UrbListener;
+import cs451.links.Link;
+import cs451.util.Pair;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -47,7 +53,7 @@ public class Process {
 
         // creates listener (to deliver messages) and broadcaster (to send messages)
         Broadcaster broadcaster = new UrbBroadcaster(this);
-        Listener listener = new UrbListener(this);
+        UrbListener listener = new UrbListener(this);
 
         broadcaster.runBroadcaster(m);
         listener.runListener();
