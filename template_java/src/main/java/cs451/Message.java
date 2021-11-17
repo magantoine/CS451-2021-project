@@ -49,7 +49,7 @@ public class Message {
     }
 
     public int getId(){
-        return Integer.parseInt(payload.split("-")[0]);
+        return Integer.parseInt(payload) + 1;
     }
 
     public ActiveHost getSender(){ return sender; }
