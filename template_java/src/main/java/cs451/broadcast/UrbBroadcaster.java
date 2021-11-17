@@ -1,4 +1,8 @@
-package cs451;
+package cs451.broadcast;
+
+import cs451.*;
+import cs451.broadcast.UrbBroadcastManager;
+import cs451.util.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -6,10 +10,10 @@ import java.util.Arrays;
 
 public class UrbBroadcaster implements Broadcaster {
 
-    private final Process leader;
+    private final UrbBroadcastManager leader;
     private final ActiveHost me;
 
-    public UrbBroadcaster(Process p){
+    public UrbBroadcaster(UrbBroadcastManager p){
         this.me = p.getAssociatedHost();
         leader = p;
     }
@@ -53,16 +57,10 @@ public class UrbBroadcaster implements Broadcaster {
                 }
             }
             // we broadcast message from 1 to m
-            leader.addActivity("b " + (Integer.parseInt(customPayload) + 1) + "\n");
+            leader.addBroadcastedMessage(msg);//"b " + (Integer.parseInt(customPayload) + 1) + "\n");
         }
 
-        while(leader.done){
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e){
-                // nothing
-            }
-        }
+
 
         // if we get here we sent everything
     }

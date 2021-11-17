@@ -1,6 +1,9 @@
-package cs451;
+package cs451.broadcast;
 
-import cs451.Message;
+import cs451.*;
+import cs451.broadcast.UrbBroadcastManager;
+import cs451.util.Observer;
+import cs451.util.Pair;
 
 
 import java.util.*;
@@ -8,12 +11,12 @@ import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class UrbListener extends Listener implements LinkObserver{
+public class UrbListener extends Listener implements Observer<Message> {
 
-    private final Process leader;
+    private final UrbBroadcastManager leader;
     private final ArrayBlockingQueue<Message> messages = new ArrayBlockingQueue<Message>(3000);
 
-    public UrbListener(Process p){
+    public UrbListener(UrbBroadcastManager p){
         // creates a Urb Listener
         leader = p;
 
@@ -22,7 +25,7 @@ public class UrbListener extends Listener implements LinkObserver{
     }
 
     @Override
-    void runListener() {
+    public void runListener() {
         Thread listenerThread = new Thread(() -> {
             try {
                 deliver();
@@ -42,7 +45,7 @@ public class UrbListener extends Listener implements LinkObserver{
      */
     public void deliver() throws IOException {
         int received_card = 0;
-        while (!leader.done) {
+        while (true) {
             Message received = null;
 
             try {

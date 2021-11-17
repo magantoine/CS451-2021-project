@@ -1,5 +1,8 @@
-package cs451;
+package cs451.links;
 
+import cs451.ActiveHost;
+import cs451.Constants;
+import cs451.Message;
 import cs451.Serializer;
 
 import java.io.IOException;
@@ -57,7 +60,8 @@ public class FairLossLink extends Link {
                 if (receivedComponents.length > 3) {
                     received = new Message(data);
                     Message finalReceived = received;
-                    observers.forEach(o -> o.receive(finalReceived));
+                    //observers.forEach(o -> o.receive(finalReceived));
+                    this.share(finalReceived);
                 } else {
                     //System.out.println("Received this shit : " + data + " received content length is " + receivedComponents.length);
                 }

@@ -1,4 +1,13 @@
-package cs451;
+package cs451.broadcast;
+
+import cs451.ActionType;
+import cs451.ActiveHost;
+import cs451.Message;
+import cs451.broadcast.Broadcaster;
+import cs451.broadcast.UrbBroadcaster;
+import cs451.broadcast.UrbListener;
+import cs451.links.Link;
+import cs451.util.Pair;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -6,33 +15,28 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import cs451.util.Observable;
 
 
-public class Process {
+public class UrbBroadcastManager extends Observable<Pair<Message, ActionType>>{
 
     private final int pId;
     private final Link rlink;
 
-    private final List<ActiveHost> doneHosts = new ArrayList<>();
+
     private final List<ActiveHost> allHosts;
-    private final List<String> activity = new CopyOnWriteArrayList<>();
-    private final String outpath;
+
     private final List<Pair<Integer, Integer>> delivered = new CopyOnWriteArrayList<>();
     private final List<Message> pending = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<Pair<Integer, Integer>, List<Integer>> ack = new ConcurrentHashMap<>();
     private final ActiveHost associatedHost;
-    boolean done = false;
 
 
 
-
-
-
-    public Process(int pId, Link rlink, List<ActiveHost> allHosts, String outPath, ActiveHost associatedHost){
+    public UrbBroadcastManager(int pId, Link rlink, List<ActiveHost> allHosts, String outPath, ActiveHost associatedHost){
         this.pId=pId;
         this.rlink = rlink;
         this.allHosts = allHosts;
-        this.outpath = outPath;
         this.associatedHost = associatedHost;
     }
 
@@ -47,7 +51,7 @@ public class Process {
 
         // creates listener (to deliver messages) and broadcaster (to send messages)
         Broadcaster broadcaster = new UrbBroadcaster(this);
-        Listener listener = new UrbListener(this);
+        UrbListener listener = new UrbListener(this);
 
         broadcaster.runBroadcaster(m);
         listener.runListener();
@@ -70,7 +74,8 @@ public class Process {
                         // message hasn't been delivered yet ==> deliver it
                         delivered.add(keyPair);
                         // sequence number starts at 1 and our counter at 0
-                        activity.add("d " + keyPair._1() + " " + keyPair._2() + "\n");
+                        //this.share("d " + keyPair._1() + " " + keyPair._2() + "\n");
+                        this.share(new Pair(msg, ActionType.RECEIVE));
 
 
                     }
@@ -80,6 +85,10 @@ public class Process {
         }
     }
 
+
+    public void addBroadcastedMessage(Message msg){
+        this.share(new Pair(msg, ActionType.SEND));
+    }
     public int getpId() {
         return pId;
     }
@@ -98,9 +107,7 @@ public class Process {
 
     public ActiveHost getAssociatedHost(){ return associatedHost; }
 
-    public void addActivity(String act){
-        activity.add(act);
-    }
+
 
     public List<ActiveHost> getAllHosts() {
         return allHosts;
@@ -110,24 +117,7 @@ public class Process {
         return rlink;
     }
 
-    public void flushActivity(String path){
-        //System.out.println("Flushing the activity to :");
-        //System.out.println(path);
-        //System.out.println("For process of Pid :" + this.pId);
-        try {
-            FileWriter output = new FileWriter(path);
-            for(String act : activity){
-                output.write(act);
-            }
 
-            output.flush();
-            output.close();
-
-
-        } catch (IOException e) {
-            //System.out.println("Couldn't write out activity");
-        }
-    }
 
     public void close(){
         rlink.close();

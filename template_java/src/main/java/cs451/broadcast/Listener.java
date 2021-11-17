@@ -1,8 +1,8 @@
-package cs451;
+package cs451.broadcast;
 
 import java.io.IOException;
 
-abstract class Listener {
+public abstract class Listener {
 
     abstract void runListener();
 

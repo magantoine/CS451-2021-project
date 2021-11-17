@@ -1,11 +1,15 @@
 package cs451;
 
+import cs451.broadcast.FifoBroadcast;
+import cs451.broadcast.UrbBroadcastManager;
+import cs451.links.FairLossLink;
+import cs451.links.ReliableLink;
+
 import java.io.IOException;
-import java.util.List;
 
 public class Main {
 
-    private static Process currentProcess = null;
+    private static FifoBroadcast currentProcess = null;
     private static String outPath = null;
 
     private static void handleSignal() {
@@ -79,12 +83,12 @@ public class Main {
 
 
         // sender host created
-        Process p = new Process(me.getId(), rLink, parser.hosts(), parser.output(), me);
+        var p = new FifoBroadcast(me.getId(), rLink, parser.hosts(), parser.output(), me);
 
         currentProcess = p;
 
 
-        p.urbBroadcast(parser.numberOfMessage());
+        p.fifoBroadcast(parser.numberOfMessage());
 
 }
 
