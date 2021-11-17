@@ -76,20 +76,22 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
     }
 
     private Optional<Message> getEarlierMessage(Message recievedMessage){
-        System.out.println("recieved message is : " + recievedMessage);
-        System.out.println("pending is " + pending);
-        System.out.println("next is " + next);
         for(var heldMessage : pending){
             var receivedSender = recievedMessage.getOriginalSender();
-            if(heldMessage.getOriginalSender().equals(receivedSender)){
-                // both message come from the same person
-                if(heldMessage.getId() == next.get(receivedSender)){
-                    // the next message that should be deliver is this one
-                    pending.remove(heldMessage);
-                    next.replace(receivedSender, heldMessage.getId() + 1);
-                    return Optional.of(heldMessage);
+            if(next.containsKey(recievedMessage.getOriginalSender())) {
+                if (heldMessage.getOriginalSender().equals(receivedSender)) {
+                    // both message come from the same person
+                    if (heldMessage.getId() == next.get(receivedSender)) {
+                        // the next message that should be deliver is this one
+                        pending.remove(heldMessage);
+                        next.replace(receivedSender, heldMessage.getId() + 1);
+                        return Optional.of(heldMessage);
+                    }
                 }
+            } else {
+                System.out.println(receivedSender  + " not in " + next);
             }
+
         }
         return Optional.empty();
     }

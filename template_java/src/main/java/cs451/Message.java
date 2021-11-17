@@ -34,7 +34,7 @@ public class Message {
 
         this.payload = content[3];
         this.sender = new ActiveHost(senderId, "localhost", Constants.BASE_PORT + senderId - 1);
-        this.originalSender = new ActiveHost(originalSenderId, "localhost", Constants.BASE_PORT + originalSenderId );
+        this.originalSender = new ActiveHost(originalSenderId, "localhost", Constants.BASE_PORT + originalSenderId - 1);
 
 
 
