@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class UrbListener extends Listener implements Observer {
+public class UrbListener extends Listener implements Observer<Message> {
 
     private final UrbBroadcastManager leader;
     private final ArrayBlockingQueue<Message> messages = new ArrayBlockingQueue<Message>(3000);
