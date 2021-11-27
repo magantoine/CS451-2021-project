@@ -86,7 +86,6 @@ public class ReliableLink extends Link implements Observer<Message> {
     private void runSender(){
         while(true){
             // we retransmit all the non acked messages
-
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
