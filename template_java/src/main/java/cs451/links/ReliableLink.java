@@ -8,21 +8,21 @@ import cs451.util.Triple;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ReliableLink extends Link implements Observer<Message> {
 
     private final Link innerLink;
     private final ConcurrentHashMap<Triple<String, Integer, Message>, Pair<Boolean, Boolean>> acked = new ConcurrentHashMap<>();
+    private final Set<Triple<Integer, Integer, Integer>> delivered = new HashSet<>();
     private final ActiveHost me;
-    private final ArrayList<Triple<Integer, Integer, Integer>> delivered = new ArrayList<>();
-
 
 
     public ReliableLink(Link flLink, ActiveHost me){
         this.innerLink = flLink;
         this.me = me;
-
 
         Thread sender = new Thread(this::runSender);
         sender.setDaemon(true);
@@ -49,17 +49,16 @@ public class ReliableLink extends Link implements Observer<Message> {
                 e.printStackTrace();
             }
 
-            var key = new Triple(message.getSender().getId(), message.getOriginalSender().getId(), Integer.parseInt(message.getPayload()) + 1);
-            if(!delivered.contains(key)) {
+            var key = new Triple(message.getSender().getId(), message.getOriginalSender().getId(), message.getId());
+            if(!delivered.contains(key)) { // O(1)
                 delivered.add(key);
-                //observers.forEach(o -> o.receive(message));
                 this.share(message);
             }
         } else {
             // we received an ACK message
 
             // we reconstruct the message
-            var msgPayload = Integer.parseInt(message.getPayload());
+            var msgPayload = message.getId();
             var senderIp = message.getSender().getIp();
             var senderPortNb = message.getSender().getPort();
 
@@ -68,7 +67,8 @@ public class ReliableLink extends Link implements Observer<Message> {
             for (var msg : acked.entrySet()){
                 var key = msg.getKey();
 
-                var compareKey = new Triple(key._1(), key._2(), Integer.parseInt(key._3().toString().split(">>>")[3]));
+                var compareKey = new Triple(key._1(), key._2(), key._3().getId());
+
                 if(compareKey.equals(searchedKey)){
                     // we found the message associated to the received ACK
                     acked.replace(key, new Pair(true, false)); // set as ACKED
@@ -87,8 +87,17 @@ public class ReliableLink extends Link implements Observer<Message> {
         while(true){
             // we retransmit all the non acked messages
 
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             acked.forEach((msg, ack) ->{
                 if(!ack._1() && !ack._2()){
+                    if(me.getId() == 1){
+                        System.out.println(msg._3());
+                        System.out.println(acked);
+                    }
                     try {
                         innerLink.rSend(msg._1(), msg._2(), msg._3());
                     } catch (IOException e){
@@ -98,7 +107,6 @@ public class ReliableLink extends Link implements Observer<Message> {
                     acked.replace(msg, new Pair(true, true));
                 }
             });
-
         }
     }
 

@@ -7,26 +7,25 @@ import cs451.links.Link;
 import cs451.util.Observer;
 import cs451.util.Pair;
 import cs451.util.Triple;
-import java.util.Optional;
+
+import java.util.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
-    private final List<String> activity = new CopyOnWriteArrayList<>();
+    private final StringBuilder activity = new StringBuilder();
     private final int pId;
     private final List<ActiveHost> allHosts;
     private final String outpath;
-    private final List<Message> pending = new CopyOnWriteArrayList<>();
+    private final List<Message> pending = new LinkedList<>();
     private final ActiveHost associatedHost;
     private final UrbBroadcastManager urbManager;
-    private final ConcurrentHashMap<ActiveHost, Integer> next = new ConcurrentHashMap<>();
-
+    private final int next [];
+    private int delivered = 0;
 
 
     public FifoBroadcast(int pId, Link rlink, List<ActiveHost> allHosts, String outPath, ActiveHost associatedHost){
@@ -34,11 +33,12 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
         this.allHosts = allHosts;
         this.associatedHost = associatedHost;
         this.outpath = outPath;
+        next = new int [allHosts.size()];
 
-
-        for(var h : allHosts){
-            next.put(h, 1); // all next for each host is set to 1
+        for(int i = 0; i < allHosts.size(); ++i){
+            next[allHosts.get(i).getId() - 1] =  1;
         }
+
 
         // CREATE THE URB MANAGER
         this.urbManager = new UrbBroadcastManager(pId, rlink, allHosts, outPath, associatedHost);
@@ -62,14 +62,25 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
     public void receive(Pair<Message, ActionType> rec) {
         // called when URB *delivers* a message or *broadcasts* a message
         if(rec._2().equals(ActionType.SEND)){
-            activity.add("b " + (Integer.parseInt(rec._1().getPayload()) + 1) + "\n");
+            activity.append("b " + rec._1().getId() + "\n");
         } else {
             // we receive a message delivered by URB
             pending.add(rec._1()); // we add the message to the pending message
             var earlyMessage = getEarlierMessage(rec._1());
             while(earlyMessage.isPresent()){
-                activity.add("d " + earlyMessage.get().getOriginalSender().getId() + " " + earlyMessage.get().getId() + "\n");
+                activity.append("d " + earlyMessage.get().getOriginalSender().getId() + " " + earlyMessage.get().getId() + "\n");
+                delivered++;
+                if(delivered % 100 == 0 && delivered != 0){
+                    System.out.println(pId + ") delivered " + delivered + " messages");
+                }
                 earlyMessage = getEarlierMessage(rec._1());
+            }
+
+
+
+            if(delivered == 900){
+                System.out.println(getpId() + ") DONE");
+                System.out.println("End " +java.time.LocalDateTime.now());
             }
 
         }
@@ -78,13 +89,14 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
     private Optional<Message> getEarlierMessage(Message recievedMessage){
         for(var heldMessage : pending){
             var receivedSender = recievedMessage.getOriginalSender();
-            if(next.containsKey(recievedMessage.getOriginalSender())) {
+
+            if(receivedSender.getId() - 1 < next.length && receivedSender.getId() - 1 >= 0) {
                 if (heldMessage.getOriginalSender().equals(receivedSender)) {
                     // both message come from the same person
-                    if (heldMessage.getId() == next.get(receivedSender)) {
+                    if (heldMessage.getId() == next[receivedSender.getId() - 1]) {
                         // the next message that should be deliver is this one
-                        pending.remove(heldMessage);
-                        next.replace(receivedSender, heldMessage.getId() + 1);
+                        pending.remove(heldMessage); // O(1) LinkedList
+                        next[receivedSender.getId() - 1] = heldMessage.getId() + 1;
                         return Optional.of(heldMessage);
                     }
                 }
@@ -100,21 +112,17 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
 
 
     public void flushActivity(String path){
-        //System.out.println("Flushing the activity to :");
-        //System.out.println(path);
-        //System.out.println("For process of Pid :" + this.pId);
+
         try {
             FileWriter output = new FileWriter(path);
-            for(String act : activity){
-                output.write(act);
-            }
+            output.write(activity.toString());
 
             output.flush();
             output.close();
 
 
         } catch (IOException e) {
-            //System.out.println("Couldn't write out activity");
+            System.out.println("Couldn't write out activity");
         }
     }
 

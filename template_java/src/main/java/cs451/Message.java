@@ -7,14 +7,14 @@ import java.util.Objects;
 
 public class Message {
 
-    private final String payload;
+    private int payload;
     private MessageType type;
     private final ActiveHost sender;
     private final ActiveHost originalSender;
 
 
     public Message(String payload, MessageType type, ActiveHost sender, ActiveHost originalSender){
-        this.payload = payload;
+        this.payload = Integer.parseInt(payload);
         this.type = type;
         this.sender = sender;
         this.originalSender = originalSender;
@@ -23,6 +23,8 @@ public class Message {
 
     public Message(String desc){
         String content [] = desc.split(">>>");
+
+
         this.type = null;
         try {
             this.type = MessageType.valueOf(content[0]);
@@ -32,7 +34,12 @@ public class Message {
         Integer senderId = Integer.parseInt(content[1]);
         Integer originalSenderId = Integer.parseInt(content[2]);
 
-        this.payload = content[3];
+        try {
+            this.payload = Integer.parseInt(content[3]);
+        } catch(Exception e){
+            System.out.println("Problem to interpret : ");
+            System.out.println(desc);
+        }
         this.sender = new ActiveHost(senderId, "localhost", Constants.BASE_PORT + senderId - 1);
         this.originalSender = new ActiveHost(originalSenderId, "localhost", Constants.BASE_PORT + originalSenderId - 1);
 
@@ -45,11 +52,12 @@ public class Message {
     }
 
     public String getPayload() {
-        return payload;
+        return "" + payload;
     }
 
     public int getId(){
-        return Integer.parseInt(payload) + 1;
+        //return Integer.parseInt(payload) + 1;
+        return payload + 1;
     }
 
     public ActiveHost getSender(){ return sender; }
@@ -67,7 +75,7 @@ public class Message {
             return false;
         } else {
             Message that = (Message)obj;
-            return that.payload.equals(this.payload) && that.getOriginalSender().equals(this.getOriginalSender()) && that.type.equals(this.type);
+            return that.payload == this.payload && that.getOriginalSender().equals(this.getOriginalSender()) && that.type.equals(this.type);
         }
     }
     

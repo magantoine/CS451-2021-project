@@ -26,9 +26,9 @@ public class UrbBroadcastManager extends Observable<Pair<Message, ActionType>>{
 
     private final List<ActiveHost> allHosts;
 
-    private final List<Pair<Integer, Integer>> delivered = new CopyOnWriteArrayList<>();
+    private final Set<Pair<Integer, Integer>> delivered = new HashSet<>();
     private final List<Message> pending = new CopyOnWriteArrayList<>();
-    private final ConcurrentMap<Pair<Integer, Integer>, List<Integer>> ack = new ConcurrentHashMap<>();
+    private final Map<Pair<Integer, Integer>, List<Integer>> ack = new ConcurrentHashMap<>();
     private final ActiveHost associatedHost;
 
 
@@ -56,23 +56,33 @@ public class UrbBroadcastManager extends Observable<Pair<Message, ActionType>>{
         broadcaster.runBroadcaster(m);
         listener.runListener();
 
+        try {
+            Thread.sleep(10000000);
+        } catch (InterruptedException e){
+            System.out.println("Failed, shutting down processes");
+        }
+        /**
         while(true){
             // this aims to check if message can be delivered
 
             for(Message msg : pending){
-                var keyPair = new Pair(msg.getOriginalSender().getId(), Integer.parseInt(msg.getPayload()) + 1);
+                var keyPair = new Pair(msg.getOriginalSender().getId(), msg.getId());
+                var nbOfAckedHosts = -1;
                 try{
-                    ack.get(keyPair).size();
+                    nbOfAckedHosts = ack.get(keyPair).size();
                 } catch(NullPointerException e){
                     continue; // don't worry you'll have it the next round
                 }
 
-                if(ack.get(keyPair).size() >= (allHosts.size() / 2)){
+                if(nbOfAckedHosts > allHosts.size() / 2){
                     // at least half of the processes acked it
-
-                    if(!delivered.contains(keyPair)){
+                    if(pId == 2) {
+                        System.out.println("Delivering " + keyPair + "acked by " + nbOfAckedHosts + " persons");
+                    }
+                    if(!delivered.contains(keyPair)){ // O(1)
                         // message hasn't been delivered yet ==> deliver it
                         delivered.add(keyPair);
+                        pending.remove(msg);
                         // sequence number starts at 1 and our counter at 0
                         //this.share("d " + keyPair._1() + " " + keyPair._2() + "\n");
                         this.share(new Pair(msg, ActionType.RECEIVE));
@@ -81,8 +91,8 @@ public class UrbBroadcastManager extends Observable<Pair<Message, ActionType>>{
                     }
                 }
             }
-
         }
+         **/
     }
 
 
@@ -93,12 +103,13 @@ public class UrbBroadcastManager extends Observable<Pair<Message, ActionType>>{
         return pId;
     }
 
-    public List<Pair<Integer, Integer>> getDelivered() {
-        return delivered;
-    }
 
     public List<Message> getPending() {
         return pending;
+    }
+
+    public Set<Pair<Integer, Integer>> getDelivered(){
+        return delivered;
     }
 
     public Map<Pair<Integer, Integer>, List<Integer>> getAck() {

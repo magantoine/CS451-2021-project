@@ -14,12 +14,13 @@ import java.util.concurrent.TimeUnit;
 public class UrbListener extends Listener implements Observer<Message> {
 
     private final UrbBroadcastManager leader;
-    private final ArrayBlockingQueue<Message> messages = new ArrayBlockingQueue<Message>(3000);
+    private final ArrayBlockingQueue<Message> messages = new ArrayBlockingQueue<Message>(50);
+    private final int canDeliverTreshold;
 
     public UrbListener(UrbBroadcastManager p){
         // creates a Urb Listener
-        leader = p;
-
+        this.leader = p;
+        this.canDeliverTreshold = leader.getAllHosts().size() / 2;
         p.getRlink().register(this);
 
     }
@@ -47,14 +48,11 @@ public class UrbListener extends Listener implements Observer<Message> {
         int received_card = 0;
         while (true) {
             Message received = null;
-
             try {
                 received = messages.poll((long)1000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-
             if (received != null) {
                 received_card ++;
 
@@ -62,22 +60,32 @@ public class UrbListener extends Listener implements Observer<Message> {
                     var receivedUnfold = received;
 
                     int senderPid = receivedUnfold.getSender().getId();
-                    Pair keyPair = new Pair(receivedUnfold.getOriginalSender().getId(), Integer.parseInt(receivedUnfold.getPayload()) + 1);
+                    Pair keyPair = new Pair(receivedUnfold.getOriginalSender().getId(), receivedUnfold.getId());
 
 
                     // ALREADY AN ENTRY IN ACK OR NOT ? CREATE IT
-                    if(leader.getAck().get(keyPair) == null){
+                    if(!leader.getAck().containsKey(keyPair)){ // O(1)
+                        // IT'S A WRITE
                         leader.getAck().put(keyPair, new ArrayList<>());
                     }
 
-                    // YOU KNOW YOU RECEIVE IT FROM THE SENDER SO IT'S AN ACK RIGHT AWA
-                    if (!leader.getAck().get(keyPair).contains(senderPid)) {
+                    List<Integer> recievers = null;
+
+                        // YOU KNOW YOU RECEIVE IT FROM THE SENDER SO IT'S AN ACK RIGHT AWA
+                    recievers = leader.getAck().get(keyPair);
+
+
+
+                    if (!recievers.contains(senderPid)) {
                         // the process whom sent us this message just acked
-                        leader.getAck().get(keyPair).add(senderPid);
+                        recievers.add(senderPid);
                     }
 
                     // IF THE MESSAGE IS NOT PENDING YET (YOU JUST RECEIVE IT)
                     if (!leader.getPending().contains(receivedUnfold)) {
+                        /**
+                         * CASE NUMBER 1 : the message is new
+                         */
                         // the received message is not pending
 
                         leader.getPending().add(receivedUnfold); // added to pending message
@@ -94,6 +102,17 @@ public class UrbListener extends Listener implements Observer<Message> {
                                 }
                             }
                         });
+                    } else {
+                        /**
+                         * CASE NUMBER 2 : the message is known
+                         */
+                        if(canDeliver(keyPair)){
+                            leader.getDelivered().add(keyPair);
+                            leader.getPending().remove(keyPair);
+                            leader.share(new Pair(receivedUnfold, ActionType.RECEIVE));
+                            System.out.println(leader.getpId() + ") delivering message " + keyPair + " with " + leader.getAck().get(keyPair).size() + " acking ");
+                        }
+
                     }
                 }
             }
@@ -108,6 +127,11 @@ public class UrbListener extends Listener implements Observer<Message> {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
+    }
+
+
+    private boolean canDeliver(Pair keyPair){
+        return leader.getAck().get(keyPair).size() > canDeliverTreshold;
     }
 }
 

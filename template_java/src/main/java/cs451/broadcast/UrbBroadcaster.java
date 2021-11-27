@@ -47,7 +47,11 @@ public class UrbBroadcaster implements Broadcaster {
 
             // add message to pending :
             leader.getPending().add(msg);
-            leader.getAck().put(new Pair(msg.getOriginalSender().getId(), Integer.parseInt(msg.getPayload()) + 1), new ArrayList(Arrays.asList(msg.getOriginalSender().getId())));
+
+            // WRITE
+            synchronized(leader.getAck()) {
+                leader.getAck().put(new Pair(msg.getOriginalSender().getId(), msg.getId()), new ArrayList(Arrays.asList(msg.getOriginalSender().getId())));
+            }
 
             // BebBrocast it
             for (ActiveHost h : leader.getAllHosts()) {

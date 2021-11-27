@@ -44,7 +44,6 @@ public class Main {
          parser.parse();
 
 
-        initSignalHandlers();
 
          /*
          Here the parser parsed everything in the command line :
@@ -56,6 +55,7 @@ public class Main {
          - path to config : parser.config()
           */
 
+        System.out.println("Start " +java.time.LocalDateTime.now());
 
         outPath = parser.output();
          //System.out.println("> INPUT PARSED");
@@ -68,9 +68,11 @@ public class Main {
          }
 
          // we got us
+        initSignalHandlers();
 
 
-        FairLossLink flLink = new FairLossLink(me.getPort(), new MessageSerializer(), me);
+
+        FairLossLink flLink = new FairLossLink(me.getPort(), new MessageSerializer());
 
         //LogLink logLink = new LogLink(flLink, me.getId());
 
