@@ -44,6 +44,7 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
         this.urbManager = new UrbBroadcastManager(pId, rlink, allHosts, outPath, associatedHost);
 
         urbManager.register(this);
+
     }
 
 
@@ -61,6 +62,7 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
     @Override
     public void receive(Pair<Message, ActionType> rec) {
         // called when URB *delivers* a message or *broadcasts* a message
+
         if(rec._2().equals(ActionType.SEND)){
             activity.append("b " + rec._1().getId() + "\n");
         } else {
@@ -70,17 +72,12 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
             while(earlyMessage.isPresent()){
                 activity.append("d " + earlyMessage.get().getOriginalSender().getId() + " " + earlyMessage.get().getId() + "\n");
                 delivered++;
-                if(delivered % 100 == 0 && delivered != 0){
-                    System.out.println(pId + ") delivered " + delivered + " messages");
-                }
                 earlyMessage = getEarlierMessage(rec._1());
             }
 
+            if(delivered % 100 == 0 && delivered != 0){
+                System.out.println(getpId() + ") delivered " + delivered + " messages");
 
-
-            if(delivered == 900){
-                System.out.println(getpId() + ") DONE");
-                System.out.println("End " +java.time.LocalDateTime.now());
             }
 
         }

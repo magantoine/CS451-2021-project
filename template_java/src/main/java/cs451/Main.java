@@ -15,7 +15,7 @@ public class Main {
     private static void handleSignal() {
         //immediately stop network packet processing
         System.out.println("Immediately stopping network packet processing.");
-
+        System.out.println("end " +java.time.LocalDateTime.now());
         //write/flush output file if necessary
         //System.out.println("Writing output.");
 
@@ -24,7 +24,7 @@ public class Main {
         System.out.println("Flushed activity for process " + currentProcess.getpId());
         currentProcess.flushActivity(outPath);
         System.out.println("Closing process " + currentProcess.getpId());
-        currentProcess.close();
+        //currentProcess.close();
 
     }
 
@@ -61,6 +61,7 @@ public class Main {
          //System.out.println("> INPUT PARSED");
          ActiveHost me = null;
 
+         System.out.println(parser.hosts());
          for(ActiveHost host : parser.hosts()) {
              if (host.getId() == parser.myId()) {
                  me = host;
@@ -72,7 +73,7 @@ public class Main {
 
 
 
-        FairLossLink flLink = new FairLossLink(me.getPort(), new MessageSerializer());
+        FairLossLink flLink = new FairLossLink(me.getPort(), new MessageSerializer(), me);
 
         //LogLink logLink = new LogLink(flLink, me.getId());
 

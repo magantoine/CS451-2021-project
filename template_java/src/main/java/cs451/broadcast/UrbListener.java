@@ -15,12 +15,11 @@ public class UrbListener extends Listener implements Observer<Message> {
 
     private final UrbBroadcastManager leader;
     private final ArrayBlockingQueue<Message> messages = new ArrayBlockingQueue<Message>(50);
-    private final int canDeliverTreshold;
 
     public UrbListener(UrbBroadcastManager p){
         // creates a Urb Listener
-        this.leader = p;
-        this.canDeliverTreshold = leader.getAllHosts().size() / 2;
+        leader = p;
+
         p.getRlink().register(this);
 
     }
@@ -31,11 +30,11 @@ public class UrbListener extends Listener implements Observer<Message> {
             try {
                 deliver();
             } catch (IOException e) {
-                //System.out.println("Exception occured in listener");
+                System.out.println("Exception occured in listener");
             }
         });
 
-        listenerThread.setDaemon(true);
+        //listenerThread.setDaemon(true);
         listenerThread.start();
     }
 
@@ -48,11 +47,14 @@ public class UrbListener extends Listener implements Observer<Message> {
         int received_card = 0;
         while (true) {
             Message received = null;
+
             try {
                 received = messages.poll((long)1000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+
             if (received != null) {
                 received_card ++;
 
@@ -64,28 +66,23 @@ public class UrbListener extends Listener implements Observer<Message> {
 
 
                     // ALREADY AN ENTRY IN ACK OR NOT ? CREATE IT
-                    if(!leader.getAck().containsKey(keyPair)){ // O(1)
-                        // IT'S A WRITE
-                        leader.getAck().put(keyPair, new ArrayList<>());
+                    if(leader.getAck().get(keyPair) == null){
+                        var newEntry = new ArrayList();
+                        newEntry.add(leader.getpId());
+                        leader.getAck().put(keyPair, newEntry);
                     }
 
-                    List<Integer> recievers = null;
-
-                        // YOU KNOW YOU RECEIVE IT FROM THE SENDER SO IT'S AN ACK RIGHT AWA
-                    recievers = leader.getAck().get(keyPair);
 
 
-
-                    if (!recievers.contains(senderPid)) {
+                    // YOU KNOW YOU RECEIVE IT FROM THE SENDER SO IT'S AN ACK RIGHT AWA
+                    if (!leader.getAck().get(keyPair).contains(senderPid)) {
                         // the process whom sent us this message just acked
-                        recievers.add(senderPid);
+                        leader.getAck().get(keyPair).add(senderPid);
                     }
+
 
                     // IF THE MESSAGE IS NOT PENDING YET (YOU JUST RECEIVE IT)
                     if (!leader.getPending().contains(receivedUnfold)) {
-                        /**
-                         * CASE NUMBER 1 : the message is new
-                         */
                         // the received message is not pending
 
                         leader.getPending().add(receivedUnfold); // added to pending message
@@ -102,17 +99,19 @@ public class UrbListener extends Listener implements Observer<Message> {
                                 }
                             }
                         });
-                    } else {
-                        /**
-                         * CASE NUMBER 2 : the message is known
-                         */
-                        if(canDeliver(keyPair)){
-                            leader.getDelivered().add(keyPair);
-                            leader.getPending().remove(keyPair);
-                            leader.share(new Pair(receivedUnfold, ActionType.RECEIVE));
-                            System.out.println(leader.getpId() + ") delivering message " + keyPair + " with " + leader.getAck().get(keyPair).size() + " acking ");
-                        }
+                    }
+                    if(leader.getAck().get(keyPair).size() > leader.getThreshold()){
+                        // at least half of the processes acked it
 
+                        if(!leader.getDelivered().contains(keyPair)) { // O(1)
+                            // message hasn't been delivered yet ==> deliver it
+                            leader.getDelivered().add(keyPair);
+                            // sequence number starts at 1 and our counter at 0
+                            //this.share("d " + keyPair._1() + " " + keyPair._2() + "\n");
+                            leader.share(new Pair(receivedUnfold, ActionType.RECEIVE));
+
+
+                        }
                     }
                 }
             }
@@ -127,11 +126,6 @@ public class UrbListener extends Listener implements Observer<Message> {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
-    }
-
-
-    private boolean canDeliver(Pair keyPair){
-        return leader.getAck().get(keyPair).size() > canDeliverTreshold;
     }
 }
 
