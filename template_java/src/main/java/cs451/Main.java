@@ -1,15 +1,17 @@
 package cs451;
 
 import cs451.broadcast.FifoBroadcast;
+import cs451.broadcast.LocalCausalBroadcast;
 import cs451.broadcast.UrbBroadcastManager;
 import cs451.links.FairLossLink;
 import cs451.links.ReliableLink;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Main {
 
-    private static FifoBroadcast currentProcess = null;
+    private static LocalCausalBroadcast currentProcess = null;
     private static String outPath = null;
 
     private static void handleSignal() {
@@ -58,15 +60,19 @@ public class Main {
         System.out.println("Start " +java.time.LocalDateTime.now());
 
         outPath = parser.output();
-         //System.out.println("> INPUT PARSED");
+
          ActiveHost me = null;
 
-         System.out.println(parser.hosts());
+
          for(ActiveHost host : parser.hosts()) {
              if (host.getId() == parser.myId()) {
                  me = host;
              }
          }
+
+
+
+
 
          // we got us
         initSignalHandlers();
@@ -83,15 +89,20 @@ public class Main {
 
         flLink.register(rLink);
         //rLink.register(logLink);
+        System.out.println("dependencises : " + parser.getDependencies().length);
+
 
 
         // sender host created
-        var p = new FifoBroadcast(me.getId(), rLink, parser.hosts(), parser.output(), me);
+        //var p = new FifoBroadcast(me.getId(), rLink, parser.hosts(), parser.output(), me);
+
+        //var p = new LocalCausalBroadcast(me.getId(), rLink, parser.hosts(), parser.output(), me, parser.getDependencies()[me.getId() - 1]);
+        var p = new LocalCausalBroadcast(me.getId(), rLink, parser.hosts(), parser.output(), me, parser.getDependencies());
 
         currentProcess = p;
 
 
-        p.fifoBroadcast(parser.numberOfMessage());
+        p.lcbBroadcast(parser.numberOfMessage());
 
 }
 

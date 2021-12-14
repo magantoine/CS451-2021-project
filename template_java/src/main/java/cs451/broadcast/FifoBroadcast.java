@@ -3,6 +3,7 @@ package cs451.broadcast;
 import cs451.ActionType;
 import cs451.ActiveHost;
 import cs451.Message;
+import cs451.VectorClock;
 import cs451.links.Link;
 import cs451.util.Observer;
 import cs451.util.Pair;
@@ -49,6 +50,17 @@ public class FifoBroadcast implements Observer<Pair<Message, ActionType>> {
 
 
     public void fifoBroadcast(int m){
+        //VectorClock clocks [] = new VectorClock[m];
+        //for(int i = 0; i < m; ++i){
+        //  clocks[i] = new VectorClock(allHosts.size());
+        //    clocks[i].set(associatedHost.getId(), i);
+        //}
+
+        //try{
+        //    urbManager.urbBroadcast(m, clocks);
+        //} catch(IOException e){
+        //    System.out.println(associatedHost.getId() +") Failed broadcasting all the messages");
+        //}
         // we want to broadcast the m messages [MAIN THREAD]
         try {
             urbManager.urbBroadcast(m);

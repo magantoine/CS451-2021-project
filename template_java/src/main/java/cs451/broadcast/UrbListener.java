@@ -87,7 +87,7 @@ public class UrbListener extends Listener implements Observer<Message> {
 
                         leader.getPending().add(receivedUnfold); // added to pending message
 
-                        Message msg = new Message(receivedUnfold.getPayload(), receivedUnfold.getType(), leader.getAssociatedHost(), receivedUnfold.getOriginalSender());
+                        Message msg = new Message(receivedUnfold.getPayload(), receivedUnfold.getType(), leader.getAssociatedHost(), receivedUnfold.getOriginalSender(), receivedUnfold.getVectorClock());
                         // then we BEBBroadcast :
 
                         leader.getAllHosts().forEach(h -> {

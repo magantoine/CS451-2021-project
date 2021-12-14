@@ -10,7 +10,7 @@ public class Parser {
     private IdParser idParser;
     private HostsParser hostsParser;
     private OutputParser outputParser;
-    private ConfigParser configParser;
+    private LCBConfigParser configParser;
 
     public Parser(String[] args) {
         this.args = args;
@@ -22,7 +22,7 @@ public class Parser {
         idParser = new IdParser();
         hostsParser = new HostsParser();
         outputParser = new OutputParser();
-        configParser = new ConfigParser();
+        configParser = new LCBConfigParser();
 
         /*
         int argsNum = args.length;
@@ -50,6 +50,9 @@ public class Parser {
         if (!outputParser.populate(args[Constants.OUTPUT_KEY], args[Constants.OUTPUT_VALUE])) {
             help();
         }
+
+
+
         configParser.populate(args[Constants.CONFIG_VALUE]);
         /*
         if (!configParser.populate(args[Constants.CONFIG_VALUE])) {
@@ -81,17 +84,11 @@ public class Parser {
         return configParser.getPath();
     }
 
-    public String message(){
-        return configParser.getPayload();
-    }
 
     public int numberOfMessage(){
         return configParser.getNumberOfMessage();
     }
 
-    public int receiverPid(){
-        return configParser.getReceiverPid();
-    }
-    
-    public String payload() {return configParser.getPayload();}
+
+    public int[][] getDependencies() { return configParser.getDependencies();}
 }

@@ -3,6 +3,7 @@ package cs451;
 import cs451.ActiveHost;
 import cs451.MessageType;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class Message {
@@ -12,6 +13,7 @@ public class Message {
     private final ActiveHost sender;
     private final ActiveHost originalSender;
     private final int id;
+    private final VectorClock vectorClock;
 
 
     public Message(String payload, MessageType type, ActiveHost sender, ActiveHost originalSender){
@@ -20,9 +22,22 @@ public class Message {
         this.sender = sender;
         this.originalSender = originalSender;
         this.id = Integer.parseInt(payload) + 1;
+        this.vectorClock = new VectorClock(0);
+
+    }
+
+    public Message(String payload, MessageType type, ActiveHost sender, ActiveHost originalSender, VectorClock vectorClock){
+        this.payload = payload;
+        this.type = type;
+        this.sender = sender;
+        this.originalSender = originalSender;
+        this.id = Integer.parseInt(payload) + 1;
+        this.vectorClock = vectorClock;
     }
 
     public Message(String desc){
+
+        //System.out.println("Received message : " + desc);
         String content [] = desc.split(">>>");
         this.type = null;
         try {
@@ -38,6 +53,18 @@ public class Message {
         this.originalSender = new ActiveHost(originalSenderId, "localhost", Constants.BASE_PORT + originalSenderId - 1);
 
         this.id = Integer.parseInt(payload) + 1;
+
+        String clockString [] = content[4].split(", ");
+        clockString[0] = clockString[0].substring(1); // substring starting at index 1 to get rid of starting "["
+        clockString[clockString.length - 1] = clockString[clockString.length - 1].substring(0, clockString[clockString.length - 1].length() - 1);
+        var clock = new VectorClock(clockString.length);
+        for(int i = 0; i < clockString.length; i++) {
+            if(clockString[i].length() > 0) {
+                clock.set(i + 1, Integer.parseInt(clockString[i]));
+            }
+        }
+
+        this.vectorClock = clock;
 
     }
 
@@ -57,9 +84,10 @@ public class Message {
 
     public ActiveHost getOriginalSender() { return originalSender; }
 
+    public VectorClock getVectorClock(){ return vectorClock; }
     @Override
     public String toString() {
-        return type + ">>>" + sender.getId() + ">>>" + originalSender.getId() + ">>>" + payload;
+        return type + ">>>" + sender.getId() + ">>>" + originalSender.getId() + ">>>" + payload + ">>>" + vectorClock;
     }
 
     @Override

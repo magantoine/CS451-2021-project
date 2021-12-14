@@ -1,9 +1,6 @@
 package cs451.broadcast;
 
-import cs451.ActionType;
-import cs451.ActiveHost;
-import cs451.Message;
-import cs451.MessageType;
+import cs451.*;
 import cs451.broadcast.Broadcaster;
 import cs451.broadcast.UrbListener;
 import cs451.links.Link;
@@ -58,7 +55,6 @@ public class UrbBroadcastManager extends Observable<Pair<Message, ActionType>>{
         for (int i = 0; i < m; i++){
             String customPayload = "" + i; // payload is gonna be the index of the message
             Message msg = new Message(customPayload, MessageType.MSG, associatedHost, associatedHost);
-
             // add message to pending :
             getPending().add(msg);
             getAck().put(new Pair(msg.getOriginalSender().getId(), msg.getId()), new ArrayList(Arrays.asList(msg.getOriginalSender().getId())));
@@ -76,8 +72,44 @@ public class UrbBroadcastManager extends Observable<Pair<Message, ActionType>>{
         while(true){
 
         }
+    }
+
+    /**
+     * runs uniform reliable broadcast to send m messages to all other processes
+     * EVERY MESSAGE IN PENDING AND NOT DELIVERED YET FOR WHICH IT'S BEEN ACKED MY HALF OF PROCESS
+     * GOES IN DELIVER
+     * @param m number of message to send to the others
+     * @param clocks values of the vector clocks that should come along each message
+     *
+     */
+    public void urbBroadcast(int m, VectorClock[] clocks) throws IOException {
+
+        // creates listener (to deliver messages) and broadcaster (to send messages)
+        UrbListener listener = new UrbListener(this);
 
 
+        listener.runListener();
+
+        for (int i = 0; i < m; i++){
+            String customPayload = "" + i; // payload is gonna be the index of the message
+            Message msg = new Message(customPayload, MessageType.MSG, associatedHost, associatedHost, clocks[i]);
+            // add message to pending :
+            getPending().add(msg);
+            getAck().put(new Pair(msg.getOriginalSender().getId(), msg.getId()), new ArrayList(Arrays.asList(msg.getOriginalSender().getId())));
+
+            // BebBrocast it
+            for (ActiveHost h : getAllHosts()) {
+                // sends the message to every host (thanks to Perfect Link property we know we'll have it)
+                if(!h.equals(getAssociatedHost())) {
+                    getRlink().rSend(h.getIp(), h.getPort(), msg);
+                }
+            }
+            // we broadcast message from 1 to m
+            addBroadcastedMessage(msg);
+        }
+        while(true){
+
+        }
     }
 
 

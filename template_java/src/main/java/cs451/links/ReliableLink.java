@@ -57,7 +57,7 @@ public class ReliableLink extends Link implements Observer<Message> {
             if(!delivered.contains(key)) { // O(1)
                 delivered.add(key);
                 this.share(message);
-                System.out.println(me.getId() + ") receiving : " + message + " ( " + java.time.LocalDateTime.now() + ") ");
+                //System.out.println(me.getId() + ") receiving : " + message + " ( " + java.time.LocalDateTime.now() + ") ");
 
             }
         } else {

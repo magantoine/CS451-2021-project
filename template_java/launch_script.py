@@ -54,14 +54,21 @@ if(not os.path.exists(PATH)):
 if(not os.path.exists(os.path.join(PATH, "out"))):
     os.makedirs(os.path.join(PATH, "out"))
 
-with open("./settings/config.txt", 'w') as config:
-    config.write(str(m)) ## we write which process is suppose to send
-    #config.write(" ")
-    #config.write(str(base_pid)) ## we write the number of messages to send/ sender process
-    #config.write(" ")
-    #rpayload = get_random_string(10)
-    #print("CHOSEN RANDOM PAYLOAD : " + rpayload)
-    #config.write(rpayload) ## we write a random payload
+# with open("./settings/config.txt", 'w') as config:
+#     config.write(str(m) + "\n") ## we write which process is suppose to send
+#     ## just an example of dependencies
+#     config.write("1 2\n")
+#     config.write("2 1")
+
+    #config.write("1 2 3 4 8\n")
+    #config.write("2 4 7 9\n")
+    #config.write("3\n")
+    #config.write("4 1 5 9\n")
+    #config.write("5 1 2 3 4 5 6\n")
+    #config.write("6 7 8 9\n")
+    #config.write("7 1 2 3 4 5 6 7 8\n")
+    #config.write("8 1 3 4\n")
+    #config.write("9 2 4 6 8\n")
 
 print("> CONFIG FILE CREATED")
 ## HOSTS FILE
