@@ -24,18 +24,14 @@ public class VectorClock {
         clock[senderId - 1] = value;
     }
 
-    /**
-     * @param other
-     * @param dependencies
-     * @return
-     */
+
     public boolean smallerThan(VectorClock other, int [] dependencies){
         for(var hostId : dependencies){
-            if(this.get(hostId) >= other.get(hostId)){
-                return true;
+            if(this.get(hostId) > other.get(hostId)){
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     @Override

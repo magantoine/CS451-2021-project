@@ -7,6 +7,7 @@ import cs451.links.FairLossLink;
 import cs451.links.ReliableLink;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class Main {
@@ -97,6 +98,11 @@ public class Main {
         //var p = new FifoBroadcast(me.getId(), rLink, parser.hosts(), parser.output(), me);
 
         //var p = new LocalCausalBroadcast(me.getId(), rLink, parser.hosts(), parser.output(), me, parser.getDependencies()[me.getId() - 1]);
+        System.out.println("All dependencies :");
+        for (var dep : parser.getDependencies()){
+            Arrays.toString(dep);
+        }
+
         var p = new LocalCausalBroadcast(me.getId(), rLink, parser.hosts(), parser.output(), me, parser.getDependencies());
 
         currentProcess = p;
